@@ -1,0 +1,14 @@
+# Internal specifications & planning files
+/docs/
+implementation_plan.md
+CLIENT_PORTFOLIO_REQUIREMENTS.md
+CLIENT_PITCH_AND_ARCHITECTURE_DOCUMENTATION.md
+
+# Raw design reference screenshots (not used by the website)
+/LayoutDesingReference/
+
+# OS & Editor generated files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom Sizing Studio & Bespoke Order Guide | BLING Boutique</title>
+  <meta name="description" content="Interactive press-on nail sizing calculator, shape visualizer (Almond, Coffin, Stiletto, Square), measurement guide, and jewelry care instructions." />
+  
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Guide Specific Aesthetics */
+    .guide-card {
+      background: #FFFFFF;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: var(--space-xl);
+    }
+
+    .shape-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: var(--space-sm);
+      margin-bottom: var(--space-md);
+    }
+
+    .shape-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 10px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-subtle);
+      transition: all var(--transition-fast);
+      cursor: pointer;
+    }
+
+    .shape-btn:hover {
+      border-color: var(--color-accent);
+      transform: translateY(-2px);
+    }
+
+    .shape-btn.active {
+      border-color: var(--color-accent);
+      background: #FFFFFF;
+      box-shadow: 0 4px 16px var(--color-accent-glow);
+    }
+
+    .shape-icon-wrap {
+      width: 44px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shape-preview-box {
+      background: var(--color-bg-subtle);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      border: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .size-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: var(--space-md);
+    }
+
+    .size-pill {
+      padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-subtle);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .size-pill.active {
+      background: var(--color-text-main);
+      color: #FFFFFF;
+      border-color: var(--color-text-main);
+    }
+
+    .custom-mm-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 12px;
+      margin-bottom: var(--space-md);
+    }
+
+    .mm-input-box label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      color: var(--color-text-muted);
+      margin-bottom: 4px;
+    }
+
+    .mm-input-box input {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      background: var(--color-bg-subtle);
+      border: 1px solid var(--color-border);
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .step-card {
+      background: #FFFFFF;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      position: relative;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Announcement Ribbon -->
+  <div class="announcement-bar">
+    <span>✨ CUSTOM SIZING ASSISTANCE AVAILABLE DIRECTLY ON WHATSAPP: +91 9284557339</span>
+  </div>
+
+  <!-- Global Header -->
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html" class="brand-logo" aria-label="Bling Boutique Home">
+        <span class="brand-name">BLING</span>
+        <span class="brand-tagline">By Poonam Somani • Solapur</span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="shop.html" class="nav-link">Shop Catalog</a></li>
+          <li><a href="guide.html" class="nav-link active">Custom Sizing Guide</a></li>
+          <li>
+            <a href="admin.html" class="nav-link badge-link">
+              Admin Portal
+              <span class="badge-pulse">Demo</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <a href="shop.html?filter=wishlist" class="action-icon-btn" title="View Wishlist" aria-label="Wishlist">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+          <span class="action-badge-count wishlist-counter" style="display: none;">0</span>
+        </a>
+
+        <button class="mobile-menu-btn" aria-label="Open Navigation Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer -->
+  <aside class="mobile-drawer">
+    <div class="mobile-drawer-header">
+      <div class="brand-logo">
+        <span class="brand-name" style="font-size: 1.5rem;">BLING</span>
+        <span class="brand-tagline">Boutique & Studio</span>
+      </div>
+      <button class="mobile-drawer-close action-icon-btn" aria-label="Close Navigation">✕</button>
+    </div>
+    <ul class="mobile-drawer-nav">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="shop.html">Shop Catalog</a></li>
+      <li><a href="guide.html">Custom Sizing Guide</a></li>
+      <li><a href="admin.html" style="color: var(--color-accent); font-weight: 700;">Admin Management Portal ⚙️</a></li>
+    </ul>
+  </aside>
+
+  <div class="backdrop-overlay"></div>
+
+  <!-- Main Guide Content -->
+  <main class="section" style="padding-top: var(--space-lg);">
+    <div class="container container-narrow">
+      
+      <!-- Page Header -->
+      <div style="text-align: center; margin-bottom: var(--space-xl);">
+        <span class="text-eyebrow">Bespoke Studio</span>
+        <h1 class="text-h1" style="margin-bottom: 8px;">Nail Sizing & Customization Guide</h1>
+        <p class="text-lead">
+          We handcraft each set to your precise finger millimeter measurements so they fit like natural extensions with zero discomfort.
+        </p>
+      </div>
+
+      <!-- Section 1: Interactive Shape Visualizer -->
+      <div class="guide-card" id="shapes">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-sm); flex-wrap: wrap; gap: 8px;">
+          <h2 class="text-h2" style="font-size: 1.6rem;">1. Select Your Nail Shape</h2>
+          <span style="font-size: 0.8rem; color: var(--color-accent); font-weight: 600;">Interactive Visualizer</span>
+        </div>
+        <p class="text-muted" style="margin-bottom: var(--space-md); font-size: 0.95rem;">
+          Tap a shape below to inspect the profile, edge curve, and finger contour compatibility.
+        </p>
+
+        <div class="shape-selector-grid" id="shape-buttons">
+          
+          <div class="shape-btn active" data-shape="Almond">
+            <div class="shape-icon-wrap">
+              <svg width="28" height="52" viewBox="0 0 28 52">
+                <path d="M4 50 L4 26 C4 10 14 2 14 2 C14 2 24 10 24 26 L24 50 Z" fill="rgba(197, 154, 111, 0.25)" stroke="#C59A6F" stroke-width="2"/>
+              </svg>
+            </div>
+            <span style="font-size: 0.85rem; font-weight: 600;">Almond</span>
+          </div>
+
+          <div class="shape-btn" data-shape="Coffin">
+            <div class="shape-icon-wrap">
+              <svg width="28" height="52" viewBox="0 0 28 52">
+                <path d="M4 50 L6 18 C7 10 9 2 9 2 L19 2 C19 2 21 10 22 18 L24 50 Z" fill="rgba(197, 154, 111, 0.25)" stroke="#C59A6F" stroke-width="2"/>
+              </svg>
+            </div>
+            <span style="font-size: 0.85rem; font-weight: 600;">Coffin</span>
+          </div>
+
+          <div class="shape-btn" data-shape="Stiletto">
+            <div class="shape-icon-wrap">
+              <svg width="28" height="52" viewBox="0 0 28 52">
+                <path d="M4 50 L4 24 C4 14 14 0 14 0 C14 0 24 14 24 24 L24 50 Z" fill="rgba(197, 154, 111, 0.25)" stroke="#C59A6F" stroke-width="2"/>
+              </svg>
+            </div>
+            <span style="font-size: 0.85rem; font-weight: 600;">Stiletto</span>
+          </div>
+
+          <div class="shape-btn" data-shape="Square">
+            <div class="shape-icon-wrap">
+              <svg width="28" height="52" viewBox="0 0 28 52">
+                <path d="M4 50 L4 4 L24 4 L24 50 Z" fill="rgba(197, 154, 111, 0.25)" stroke="#C59A6F" stroke-width="2"/>
+              </svg>
+            </div>
+            <span style="font-size: 0.85rem; font-weight: 600;">Square</span>
+          </div>
+
+          <div class="shape-btn" data-shape="Oval">
+            <div class="shape-icon-wrap">
+              <svg width="28" height="52" viewBox="0 0 28 52">
+                <path d="M4 50 L4 20 C4 6 14 4 14 4 C14 4 24 6 24 20 L24 50 Z" fill="rgba(197, 154, 111, 0.25)" stroke="#C59A6F" stroke-width="2"/>
+              </svg>
+            </div>
+            <span style="font-size: 0.85rem; font-weight: 600;">Oval</span>
+          </div>
+
+        </div>
+
+        <div class="shape-preview-box" id="shape-info-box">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <strong id="shape-info-title" style="font-family: var(--font-heading); font-size: 1.35rem;">Almond Shape (Medium / Long)</strong>
+            <span class="product-badge" style="position: static;">Most Popular</span>
+          </div>
+          <p id="shape-info-desc" style="font-size: 0.9rem; color: var(--color-text-muted);">
+            Tapers into a soft, rounded peak. Universally flattering shape that visually elongates shorter nail beds and provides a graceful, feminine silhouette for everyday wear and weddings.
+          </p>
+        </div>
+      </div>
+
+      <!-- Section 2: Interactive Sizing Calculator -->
+      <div class="guide-card" id="calculator">
+        <h2 class="text-h2" style="font-size: 1.6rem; margin-bottom: 6px;">2. Find Your Size (Preset or Custom MM)</h2>
+        <p class="text-muted" style="margin-bottom: var(--space-md); font-size: 0.95rem;">
+          Choose a standard preset, or enter your exact nail bed width in millimeters for each finger.
+        </p>
+
+        <!-- Standard Size Presets -->
+        <div class="size-pill-row" id="preset-pills">
+          <button class="size-pill" data-preset="XS">XS (14 • 11 • 12 • 10 • 8 mm)</button>
+          <button class="size-pill active" data-preset="S">S (15 • 12 • 13 • 11 • 8 mm)</button>
+          <button class="size-pill" data-preset="M">M (16 • 12 • 14 • 12 • 9 mm)</button>
+          <button class="size-pill" data-preset="L">L (18 • 13 • 15 • 13 • 10 mm)</button>
+          <button class="size-pill" data-preset="Custom">✨ Custom MM Fit</button>
+        </div>
+
+        <!-- Millimeter Inputs -->
+        <div class="custom-mm-grid">
+          <div class="mm-input-box">
+            <label for="mm-thumb">Thumb</label>
+            <input type="number" id="mm-thumb" value="15" min="8" max="22" />
+          </div>
+          <div class="mm-input-box">
+            <label for="mm-index">Index</label>
+            <input type="number" id="mm-index" value="12" min="8" max="22" />
+          </div>
+          <div class="mm-input-box">
+            <label for="mm-middle">Middle</label>
+            <input type="number" id="mm-middle" value="13" min="8" max="22" />
+          </div>
+          <div class="mm-input-box">
+            <label for="mm-ring">Ring</label>
+            <input type="number" id="mm-ring" value="11" min="8" max="22" />
+          </div>
+          <div class="mm-input-box">
+            <label for="mm-pinky">Pinky</label>
+            <input type="number" id="mm-pinky" value="8" min="6" max="18" />
+          </div>
+        </div>
+
+        <!-- WhatsApp Action Button -->
+        <div style="background: var(--color-bg-subtle); border-radius: var(--radius-lg); padding: var(--space-md); display: flex; flex-direction: column; gap: 10px; align-items: center; border: 1px solid var(--color-border); text-align: center;">
+          <div style="font-weight: 700; font-size: 1rem;">Ready to send your sizing for a custom quote?</div>
+          <p style="font-size: 0.85rem; color: var(--color-text-muted); max-width: 480px;">
+            Click below to generate a pre-filled WhatsApp message with your exact shape and millimeter measurements directly to Poonam Somani.
+          </p>
+          <button id="send-sizing-wa-btn" class="btn btn-whatsapp" style="width: 100%; max-width: 380px;">
+            Send My Sizing on WhatsApp 💬
+          </button>
+        </div>
+      </div>
+
+      <!-- Section 3: How to Measure at Home -->
+      <div class="guide-card">
+        <h2 class="text-h2" style="font-size: 1.6rem; margin-bottom: var(--space-sm);">3. The 2-Minute Tape Measurement Method</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-md);">
+          
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 4px;">Apply Clear Tape</h3>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              Press a piece of clear scotch tape across the widest part of your natural nail bed, making sure it hugs the sidewalls.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 4px;">Mark the Edges</h3>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              Use a fine pen to mark lines on both sides where your nail meets the skin of your finger.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 4px;">Measure on Ruler</h3>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              Peel the tape off, place it flat on a millimeter ruler, and count the mm between the two marks. Enter them above!
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section 4: Jewelry Material Care & Integrity -->
+      <div class="guide-card" id="care">
+        <h2 class="text-h2" style="font-size: 1.6rem; margin-bottom: var(--space-sm);">4. Material Integrity & Care</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-md);">
+          
+          <div style="border-left: 3px solid var(--color-accent); padding-left: 14px;">
+            <h4 style="font-size: 1.05rem; margin-bottom: 4px;">Anti-Tarnish 18k PVD Plating</h4>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              Our necklaces and charm bracelets use PVD vacuum deposition on surgical stainless steel. Resistant to sweat and water splashes.
+            </p>
+          </div>
+
+          <div style="border-left: 3px solid var(--color-accent); padding-left: 14px;">
+            <h4 style="font-size: 1.05rem; margin-bottom: 4px;">Multi-Wear Gel Press-Ons</h4>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              Can be worn for 1–2 days using adhesive tabs (ideal for photoshoots/events), or up to 3 weeks using our salon nail glue. Fully reusable!
+            </p>
+          </div>
+
+          <div style="border-left: 3px solid var(--color-accent); padding-left: 14px;">
+            <h4 style="font-size: 1.05rem; margin-bottom: 4px;">Basra & Shell Pearl Preservation</h4>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              Wipe pearls with a soft microfiber cloth after wear. Avoid spraying direct perfume onto natural shell surfaces.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Step-by-Step Custom Order Journey -->
+      <div style="text-align: center; margin-top: var(--space-xl); margin-bottom: var(--space-lg);">
+        <h2 class="text-h2">The Custom Creation Journey</h2>
+        <p class="text-muted">How your bespoke set goes from inspiration to your doorstep</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-xl);">
+        
+        <div class="step-card" style="text-align: center;">
+          <div class="step-number" style="margin: 0 auto 12px;">1</div>
+          <h3 style="font-size: 1rem; margin-bottom: 4px;">Share Inspiration</h3>
+          <p style="font-size: 0.8rem; color: var(--color-text-muted);">Send outfit photo or catalog code on WhatsApp.</p>
+        </div>
+
+        <div class="step-card" style="text-align: center;">
+          <div class="step-number" style="margin: 0 auto 12px;">2</div>
+          <h3 style="font-size: 1rem; margin-bottom: 4px;">Size & Shape Lock</h3>
+          <p style="font-size: 0.8rem; color: var(--color-text-muted);">Confirm your nail shape and millimeter measurements.</p>
+        </div>
+
+        <div class="step-card" style="text-align: center;">
+          <div class="step-number" style="margin: 0 auto 12px;">3</div>
+          <h3 style="font-size: 1rem; margin-bottom: 4px;">Artisanal Crafting</h3>
+          <p style="font-size: 0.8rem; color: var(--color-text-muted);">Hand-sculpted & cured over 2–4 days in Solapur.</p>
+        </div>
+
+        <div class="step-card" style="text-align: center;">
+          <div class="step-number" style="margin: 0 auto 12px;">4</div>
+          <h3 style="font-size: 1rem; margin-bottom: 4px;">Boutique Unboxing</h3>
+          <p style="font-size: 0.8rem; color: var(--color-text-muted);">Delivered with nail glue, prep file, and buffer.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <div>© 2026 BLING Boutique. Handcrafted by Poonam Somani, Solapur.</div>
+        <div style="display: flex; gap: 16px;">
+          <a href="shop.html">Shop Catalog</a>
+          <span>•</span>
+          <a href="admin.html" style="color: var(--color-accent);">Admin Portal</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/guide.js"></script>
+</body>
+</html>

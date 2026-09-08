@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Management Portal | BLING Boutique</title>
+  <meta name="description" content="Manage the Bling Boutique catalogue. Add new handcrafted designs, edit prices and descriptions, or delete items. GitHub-Pages compatible." />
+  
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Admin Portal Aesthetics */
+    .admin-dashboard {
+      padding: var(--space-lg) 0 var(--space-2xl);
+    }
+
+    .admin-top-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+
+    .stat-card {
+      background: #FFFFFF;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--color-text-main);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-text-muted);
+      font-weight: 600;
+    }
+
+    .admin-toolbar {
+      background: #FFFFFF;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      margin-bottom: var(--space-md);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .admin-table-container {
+      background: #FFFFFF;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow-x: auto;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.875rem;
+    }
+
+    .admin-table th {
+      background: var(--color-bg-subtle);
+      padding: 14px 16px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      color: var(--color-text-muted);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .admin-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(28, 25, 23, 0.05);
+      vertical-align: middle;
+    }
+
+    .admin-table tr:hover td {
+      background: rgba(250, 247, 242, 0.6);
+    }
+
+    .thumb-cell {
+      width: 54px;
+      height: 54px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: var(--color-bg-subtle);
+      border: 1px solid var(--color-border);
+    }
+
+    .thumb-cell img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .action-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-table-edit {
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--color-bg-subtle);
+      color: var(--color-text-main);
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid var(--color-border);
+      transition: all var(--transition-fast);
+    }
+
+    .btn-table-edit:hover {
+      background: var(--color-accent);
+      color: #FFFFFF;
+      border-color: var(--color-accent);
+    }
+
+    .btn-table-delete {
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      background: #FFF1F2;
+      color: #E11D48;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid rgba(225, 29, 72, 0.2);
+      transition: all var(--transition-fast);
+    }
+
+    .btn-table-delete:hover {
+      background: #E11D48;
+      color: #FFFFFF;
+    }
+
+    /* Form Styles */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-md);
+      margin-bottom: var(--space-md);
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      color: var(--color-text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      background: var(--color-bg-subtle);
+      border: 1px solid var(--color-border);
+      font-size: 0.9rem;
+      color: var(--color-text-main);
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      background: #FFFFFF;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px var(--color-accent-glow);
+    }
+
+    .toast-notification {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--color-luxury-band);
+      color: var(--color-luxury-gold);
+      padding: 12px 20px;
+      border-radius: var(--radius-pill);
+      font-size: 0.875rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-hover);
+      z-index: 150;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all var(--transition-normal);
+    }
+
+    .toast-notification.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Announcement Ribbon -->
+  <div class="announcement-bar" style="background: #171413;">
+    <span>⚙️ CLIENT DEMO ADMIN CONSOLE • LIVE LOCAL-PERSISTENCE ENABLED • 100% GITHUB PAGES COMPATIBLE</span>
+  </div>
+
+  <!-- Global Header -->
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html" class="brand-logo" aria-label="Bling Boutique Home">
+        <span class="brand-name">BLING</span>
+        <span class="brand-tagline">Catalogue Management Console</span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Home View</a></li>
+          <li><a href="shop.html" class="nav-link">Live Shop View</a></li>
+          <li><a href="guide.html" class="nav-link">Custom Guide</a></li>
+          <li><a href="admin.html" class="nav-link active">Admin Portal</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <a href="shop.html" class="btn btn-secondary btn-sm">
+          ← Back to Boutique
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Admin Dashboard Container -->
+  <main class="container admin-dashboard">
+    
+    <!-- Top Bar: Title & Demo Controls -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); flex-wrap: wrap; gap: var(--space-sm);">
+      <div>
+        <span class="text-eyebrow">Interactive Catalogue Controller</span>
+        <h1 class="text-h1" style="font-size: 2.2rem; margin-bottom: 4px;">Catalogue Inventory & Admin</h1>
+        <p class="text-muted" style="font-size: 0.9rem;">
+          Add, edit, or remove products in real-time. Changes immediately reflect across the entire store.
+        </p>
+      </div>
+
+      <!-- Pitch Demo Reset & Export Buttons -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button id="btn-export-json" class="btn btn-secondary btn-sm" title="Download current catalog as JSON">
+          📥 Export JSON
+        </button>
+        <button id="btn-reset-demo" class="btn btn-wine btn-sm" title="Restore initial 20-item factory catalogue">
+          🔄 Reset Factory Demo
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="admin-top-stats">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total-products">20</div>
+        <div class="stat-label">Total Creations</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total-nails">5</div>
+        <div class="stat-label">Press-On Nails</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total-necklaces">5</div>
+        <div class="stat-label">Necklaces</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total-hair">4</div>
+        <div class="stat-label">Hair Adornments</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total-bestsellers">8</div>
+        <div class="stat-label">Active Bestsellers</div>
+      </div>
+    </div>
+
+    <!-- Action Toolbar & Search -->
+    <div class="admin-toolbar">
+      <div style="flex: 1; min-width: 260px;">
+        <input 
+          type="text" 
+          id="admin-search-input" 
+          class="form-input" 
+          placeholder="Filter admin items by title, category, or SKU..."
+          style="padding: 8px 14px;"
+        />
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <button id="btn-open-add-modal" class="btn btn-primary btn-sm">
+          + Add New Creation
+        </button>
+      </div>
+    </div>
+
+    <!-- Inventory Table View -->
+    <div class="admin-table-container">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Preview</th>
+            <th>SKU & Title</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Style & Occasion</th>
+            <th>Badge</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="admin-table-body">
+          <!-- Injected via js/admin.js -->
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <!-- Add / Edit Product Modal -->
+  <div id="product-form-modal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-container" style="max-width: 680px;">
+      <button class="modal-close-btn" id="close-form-modal">✕</button>
+      
+      <h2 id="modal-form-title" class="text-h2" style="font-size: 1.6rem; margin-bottom: var(--space-md);">
+        Add New Creation
+      </h2>
+
+      <form id="product-admin-form">
+        <input type="hidden" id="form-product-id" value="" />
+
+        <div class="form-grid">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="form-title">Product Title *</label>
+            <input type="text" id="form-title" class="form-input" placeholder="e.g. Celestial Golden Snitch Press-On Set" required />
+          </div>
+
+          <div class="form-group">
+            <label for="form-category">Category *</label>
+            <select id="form-category" class="form-select" required>
+              <option value="nails">Press-On Nails</option>
+              <option value="necklaces">Necklaces</option>
+              <option value="hair">Hair Accessories</option>
+              <option value="earrings">Earrings & Brooches</option>
+              <option value="bracelets">Bracelets & Charms</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="form-price">Price (₹) *</label>
+            <input type="number" id="form-price" class="form-input" placeholder="e.g. 1299" required min="100" />
+          </div>
+
+          <div class="form-group">
+            <label for="form-orig-price">Original / MRP (₹)</label>
+            <input type="number" id="form-orig-price" class="form-input" placeholder="e.g. 1699" min="100" />
+          </div>
+
+          <div class="form-group">
+            <label for="form-style">Aesthetic Style</label>
+            <select id="form-style" class="form-select">
+              <option value="Bridal Glam">Bridal Glam</option>
+              <option value="Minimalist Chic">Minimalist Chic</option>
+              <option value="Vintage Victorian">Vintage Victorian</option>
+              <option value="Celestial & Y2K">Celestial & Y2K</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="form-occasion">Occasion</label>
+            <select id="form-occasion" class="form-select">
+              <option value="Wedding & Festive">Wedding & Festive</option>
+              <option value="Everyday Chic">Everyday Chic</option>
+              <option value="Evening Party">Evening Party</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="form-badge">Card Badge</label>
+            <input type="text" id="form-badge" class="form-input" placeholder="e.g. Handcrafted, Bestseller, New" />
+          </div>
+        </div>
+
+        <!-- Image Selection: URL or Local Upload -->
+        <div style="background: var(--color-bg-subtle); padding: 14px; border-radius: var(--radius-md); margin-bottom: var(--space-md); border: 1px solid var(--color-border);">
+          <label style="display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: var(--color-text-muted); margin-bottom: 6px;">
+            Product Photography Source *
+          </label>
+          
+          <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+            <input type="text" id="form-image-url" class="form-input" placeholder="Image URL or SampleImages path..." style="background: #FFFFFF;" />
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 0.75rem; color: var(--color-text-muted);">OR Upload from Device:</span>
+            <input type="file" id="form-image-file" accept="image/*" style="font-size: 0.8rem;" />
+          </div>
+
+          <!-- Live Image Preview -->
+          <div id="form-image-preview-box" style="margin-top: 10px; width: 80px; height: 80px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--color-border); background: #FFFFFF; display: none;">
+            <img id="form-image-preview-img" src="" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: var(--space-md);">
+          <label for="form-description">Description & Details</label>
+          <textarea id="form-description" class="form-textarea" rows="3" placeholder="Describe the handcrafted details, materials used, wear durability, and customization options..."></textarea>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: var(--space-lg);">
+          <input type="checkbox" id="form-is-bestseller" style="width: 18px; height: 18px;" />
+          <label for="form-is-bestseller" style="font-size: 0.875rem; font-weight: 600; cursor: pointer;">
+            Feature as Bestseller on Flagship Home Page
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-cancel-form">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Save Creation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Alert -->
+  <div id="toast" class="toast-notification">
+    <span id="toast-message">Catalogue updated successfully!</span>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

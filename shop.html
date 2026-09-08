@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Artisan Catalog & Collections | BLING Boutique</title>
+  <meta name="description" content="Explore our handcrafted press-on nails, anti-tarnish gemstone necklaces, hair barrettes, and earrings. Filter by aesthetic style, occasion, and custom fit." />
+  
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Catalog Specific Styling */
+    .filter-section {
+      background: var(--color-bg-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      margin-bottom: var(--space-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .filter-header-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-sm);
+    }
+
+    .search-input-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 16px 10px 42px;
+      border-radius: var(--radius-pill);
+      background: var(--color-bg-subtle);
+      border: 1px solid var(--color-border);
+      font-size: 0.9rem;
+      transition: all var(--transition-fast);
+    }
+
+    .search-input:focus {
+      background: #FFFFFF;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px var(--color-accent-glow);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-text-light);
+      pointer-events: none;
+    }
+
+    .advance-filters-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-subtle);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-text-main);
+      transition: all var(--transition-fast);
+    }
+
+    .advance-filters-toggle:hover,
+    .advance-filters-toggle.active {
+      border-color: var(--color-accent);
+      background: #FFFFFF;
+      color: var(--color-accent);
+    }
+
+    .advance-filters-drawer {
+      display: none;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-md);
+      padding-top: var(--space-md);
+      margin-top: var(--space-sm);
+      border-top: 1px solid var(--color-border);
+    }
+
+    .advance-filters-drawer.open {
+      display: grid;
+    }
+
+    .filter-group label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      color: var(--color-text-muted);
+      margin-bottom: 6px;
+    }
+
+    .filter-select {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      background: var(--color-bg-subtle);
+      border: 1px solid var(--color-border);
+      font-size: 0.875rem;
+      color: var(--color-text-main);
+      cursor: pointer;
+    }
+
+    .active-tag-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .active-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--color-accent-light);
+      color: var(--color-accent-hover);
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .active-tag button {
+      color: var(--color-accent-hover);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Announcement Ribbon -->
+  <div class="announcement-bar">
+    <span>✨ CUSTOM SIZING FOR ALL PRESS-ON SETS • DIRECT WHATSAPP CONSULTATION</span>
+  </div>
+
+  <!-- Global Header -->
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html" class="brand-logo" aria-label="Bling Boutique Home">
+        <span class="brand-name">BLING</span>
+        <span class="brand-tagline">By Poonam Somani • Solapur</span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="shop.html" class="nav-link active">Shop Catalog</a></li>
+          <li><a href="guide.html" class="nav-link">Custom Sizing Guide</a></li>
+          <li>
+            <a href="admin.html" class="nav-link badge-link">
+              Admin Portal
+              <span class="badge-pulse">Demo</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <button id="wishlist-filter-btn" class="action-icon-btn" title="View Wishlist" aria-label="Wishlist Filter">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+          <span class="action-badge-count wishlist-counter" style="display: none;">0</span>
+        </button>
+
+        <button class="mobile-menu-btn" aria-label="Open Navigation Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Navigation Drawer -->
+  <aside class="mobile-drawer">
+    <div class="mobile-drawer-header">
+      <div class="brand-logo">
+        <span class="brand-name" style="font-size: 1.5rem;">BLING</span>
+        <span class="brand-tagline">Boutique & Studio</span>
+      </div>
+      <button class="mobile-drawer-close action-icon-btn" aria-label="Close Navigation">✕</button>
+    </div>
+    <ul class="mobile-drawer-nav">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="shop.html">Shop Catalog</a></li>
+      <li><a href="guide.html">Custom Sizing Guide</a></li>
+      <li><a href="admin.html" style="color: var(--color-accent); font-weight: 700;">Admin Management Portal ⚙️</a></li>
+    </ul>
+  </aside>
+
+  <div class="backdrop-overlay"></div>
+
+  <!-- Page Title Section (Minimal & Uncrowded) -->
+  <main class="section" style="padding-top: var(--space-lg);">
+    <div class="container">
+      
+      <div style="text-align: center; max-width: 620px; margin: 0 auto var(--space-md);">
+        <span class="text-eyebrow">Artisan Collection</span>
+        <h1 class="text-h1" style="margin-bottom: 6px;">Handcrafted Creations</h1>
+        <p class="text-muted" style="font-size: 0.95rem;">
+          Clean, tactile photography showcasing handcrafted press-on nails, anti-tarnish jewelry, and hair accessories.
+        </p>
+      </div>
+
+      <!-- Advanced Filter & Control Bar -->
+      <div class="filter-section">
+        
+        <div class="filter-header-row">
+          <!-- Search Box -->
+          <div class="search-input-wrap">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              id="search-input" 
+              class="search-input" 
+              placeholder="Search by design, style, or SKU (e.g. Bridal, Emerald, Ribbed)..."
+            />
+          </div>
+
+          <!-- Advance Filters Trigger Button -->
+          <button id="toggle-advance-filters" class="advance-filters-toggle">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            Filters & Style Sort
+          </button>
+        </div>
+
+        <!-- Primary Category Pills Row -->
+        <div class="filter-pills-row" id="category-pills">
+          <button class="filter-pill active" data-category="all">All Creations</button>
+          <button class="filter-pill" data-category="nails">💅 Press-On Nails</button>
+          <button class="filter-pill" data-category="necklaces">📿 Necklaces</button>
+          <button class="filter-pill" data-category="hair">🎀 Hair Accessories</button>
+          <button class="filter-pill" data-category="earrings">✨ Earrings & Brooches</button>
+          <button class="filter-pill" data-category="bracelets">💫 Bracelets</button>
+        </div>
+
+        <!-- Collapsible Multi-Attribute Filters Drawer -->
+        <div id="advance-filters-drawer" class="advance-filters-drawer">
+          
+          <!-- Filter: Style / Aesthetic -->
+          <div class="filter-group">
+            <label for="style-filter">Aesthetic Style</label>
+            <select id="style-filter" class="filter-select">
+              <option value="all">All Aesthetics</option>
+              <option value="Bridal Glam">Bridal Glam</option>
+              <option value="Minimalist Chic">Minimalist Chic</option>
+              <option value="Vintage Victorian">Vintage Victorian</option>
+              <option value="Celestial & Y2K">Celestial & Y2K</option>
+            </select>
+          </div>
+
+          <!-- Filter: Occasion -->
+          <div class="filter-group">
+            <label for="occasion-filter">Occasion</label>
+            <select id="occasion-filter" class="filter-select">
+              <option value="all">All Occasions</option>
+              <option value="Wedding & Festive">Wedding & Festive</option>
+              <option value="Everyday Chic">Everyday Chic</option>
+              <option value="Evening Party">Evening Party</option>
+            </select>
+          </div>
+
+          <!-- Filter: Price Range -->
+          <div class="filter-group">
+            <label for="price-filter">Price Tier</label>
+            <select id="price-filter" class="filter-select">
+              <option value="all">All Prices</option>
+              <option value="under-800">Under ₹800</option>
+              <option value="800-1200">₹800 – ₹1,200</option>
+              <option value="above-1200">₹1,200 & Above</option>
+            </select>
+          </div>
+
+          <!-- Sort Filter -->
+          <div class="filter-group">
+            <label for="sort-select">Sort By</label>
+            <select id="sort-select" class="filter-select">
+              <option value="featured">Featured & Bestsellers</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="rating">Highest Rated</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Active Tags & Item Counter -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: 0.8rem; color: var(--color-text-muted); flex-wrap: wrap; gap: 8px;">
+          <span id="results-count">Showing 20 creations</span>
+          <div class="active-tag-pills" id="active-tag-container"></div>
+          <button id="clear-all-filters-btn" style="color: var(--color-accent); font-weight: 600; text-decoration: underline; display: none;">Clear all filters</button>
+        </div>
+
+      </div>
+
+      <!-- Main Product Grid -->
+      <div id="catalog-grid" class="product-grid">
+        <!-- Injected dynamically by js/shop.js -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" style="display: none; text-align: center; padding: var(--space-xl) var(--space-md);">
+        <div style="font-size: 3rem; margin-bottom: var(--space-xs);">💎</div>
+        <h3 style="font-size: 1.5rem; margin-bottom: 8px;">No creations match this criteria</h3>
+        <p class="text-muted" style="margin-bottom: var(--space-md);">Try adjusting your search terms or clearing active filters to browse the full catalog.</p>
+        <button class="btn btn-secondary" onclick="resetAllFilters()">Reset All Filters</button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Quick View Modal Container -->
+  <div id="quick-view-modal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-container">
+      <button class="modal-close-btn" aria-label="Close details">✕</button>
+      <div id="quick-view-content"></div>
+    </div>
+  </div>
+
+  <!-- Global Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <div>© 2026 BLING Boutique. Handcrafted by Poonam Somani, Solapur.</div>
+        <div style="display: flex; gap: 16px;">
+          <a href="guide.html">Custom Sizing Help</a>
+          <span>•</span>
+          <a href="admin.html" style="color: var(--color-accent);">Admin Portal</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating Mobile Sticky Bar -->
+  <div class="mobile-sticky-action-bar">
+    <div style="font-size: 0.75rem; font-weight: 600; color: var(--color-text-main); padding-left: 6px;">
+      Direct Consultation
+    </div>
+    <a href="https://wa.me/919284557339?text=Hi%20Poonam!%20I'm%20browsing%20the%20catalog%20and%20want%20to%20customize." target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp btn-sm">
+      WhatsApp Inquire 💬
+    </a>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/shop.js"></script>
+</body>
+</html>
