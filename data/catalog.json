@@ -15,6 +15,7 @@
     "isBestseller": true,
     "isNew": true,
     "badge": "Handcrafted 3D",
+    "availability_status": "in_stock",
     "description": "Exquisite salon-grade press-on nails featuring hand-sculpted 3D porcelain flowers, metallic gold French contouring, and luminous micro pearl embellishments. Reusable up to 5+ applications.",
     "specs": {
       "material": "Salon-Grade Acrylic Gel & Gold Foil",
@@ -40,6 +41,7 @@
     "isBestseller": true,
     "isNew": false,
     "badge": "Trending",
+    "availability_status": "made_to_order",
     "description": "Subtle texture meets sophisticated translucent amber fluting. Inspired by artisan fluted glassware, offering timeless understated luxury for work or weekend brunch.",
     "specs": {
       "material": "Translucent Jelly Resin & Gel",
@@ -164,6 +166,7 @@
     "isBestseller": true,
     "isNew": false,
     "badge": "Anti-Tarnish",
+    "availability_status": "made_to_order",
     "description": "Faceted emerald crystal heart pendant bordered with delicate bead milgrain on a smooth 18k gold-plated liquid snake chain. 100% waterproof and hypoallergenic.",
     "specs": {
       "material": "316L Stainless Steel, 18k PVD Gold Plated, Cubic Zirconia",

@@ -3,6 +3,8 @@
 implementation_plan.md
 CLIENT_PORTFOLIO_REQUIREMENTS.md
 CLIENT_PITCH_AND_ARCHITECTURE_DOCUMENTATION.md
+conversation.md
+convo.md
 
 # Raw design reference screenshots (not used by the website)
 /LayoutDesingReference/
@@ -12,3 +14,10 @@ CLIENT_PITCH_AND_ARCHITECTURE_DOCUMENTATION.md
 Thumbs.db
 .vscode/
 .idea/
+
+# Supabase secrets & private credentials (never push to GitHub)
+js/supabase-config.js
+*.env
+*.env.*
+*.local
+supabase-credentials.json

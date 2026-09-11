@@ -8,12 +8,23 @@ const BLING_PHONE = '919284557339'; // Poonam Somani / Bling Official
 
 /**
  * Generates an optimized, pre-filled WhatsApp inquiry URL
+ * Automatically tailors message between Instant Store Pickup vs Custom Bespoke Recreation
  */
 function getWhatsAppInquiryUrl(product, customNotes = '') {
-  const brandGreeting = "Hi Poonam! I found this on Bling Boutique:";
-  const prodInfo = `*${product.title}* (Code: ${product.sku || product.id}) - ₹${product.price.toLocaleString('en-IN')}`;
-  const notes = customNotes ? `\n*My Customization Request:* ${customNotes}` : "\nCan I customize this with my sizing/preferences?";
-  const fullText = `${brandGreeting}\n\n${prodInfo}${notes}\n\nPlease share delivery and dispatch timeline.`;
+  const isMadeToOrder = product.availability_status === 'made_to_order';
+  let brandGreeting, actionPrompt;
+
+  if (isMadeToOrder) {
+    brandGreeting = "Hi Poonam! I saw this design on Bling Boutique:";
+    actionPrompt = "I see this studio sample is marked 'Crafted on Order / Sold'. Can you recreate this custom piece for me in my size / preferred color?";
+  } else {
+    brandGreeting = "Hi Poonam! I found this creation on Bling Boutique:";
+    actionPrompt = "Is this piece currently available in your Solapur studio for immediate pickup / same-day dispatch?";
+  }
+
+  const prodInfo = `*${product.title}* (SKU: ${product.sku || product.id}) - ₹${product.price.toLocaleString('en-IN')}`;
+  const notes = customNotes ? `\n*My Customization Request:* ${customNotes}` : `\n${actionPrompt}`;
+  const fullText = `${brandGreeting}\n\n${prodInfo}${notes}\n\nPlease share delivery and ordering details.`;
   return `https://wa.me/${BLING_PHONE}?text=${encodeURIComponent(fullText)}`;
 }
 
@@ -94,10 +105,21 @@ function updateWishlistBadges() {
  */
 function createProductCardHTML(product) {
   const isWish = window.BlingStorage && window.BlingStorage.isWishlisted(product.id);
+  const isMadeToOrder = product.availability_status === 'made_to_order';
   const waUrl = getWhatsAppInquiryUrl(product);
+
+  const statusBadgeHTML = isMadeToOrder
+    ? `<span class="product-status-badge status-made-to-order" title="Sold in Studio — Available for bespoke handcrafted recreation">
+        <span class="status-indicator-dot"></span> Crafted on Order
+       </span>`
+    : `<span class="product-status-badge status-in-stock" title="Available in Solapur Studio for instant pickup / dispatch">
+        <span class="status-indicator-dot"></span> In Studio
+       </span>`;
+
+  const ctaBtnText = isMadeToOrder ? 'Recreate' : 'Inquire';
   
   return `
-    <article class="product-card" data-id="${product.id}">
+    <article class="product-card" data-id="${product.id}" data-sku="${product.sku || ''}">
       <div class="product-image-wrap">
         <img 
           src="${encodeURI(product.image)}" 
@@ -119,7 +141,11 @@ function createProductCardHTML(product) {
       </div>
       
       <div class="product-details">
-        <div class="product-category-tag">${product.categoryName || product.category}</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+          <div class="product-category-tag">${product.categoryName || product.category}</div>
+          ${statusBadgeHTML}
+        </div>
+
         <h3 class="product-title" title="${product.title}">${product.title}</h3>
         
         <div class="product-meta">
@@ -127,17 +153,18 @@ function createProductCardHTML(product) {
             <span class="current-price">₹${product.price.toLocaleString('en-IN')}</span>
             ${product.originalPrice ? `<span class="original-price">₹${product.originalPrice.toLocaleString('en-IN')}</span>` : ''}
           </div>
+          <span style="font-size: 0.72rem; color: var(--color-text-muted);">${product.sku || ''}</span>
         </div>
 
         <div class="product-card-actions">
           <button class="btn btn-secondary btn-sm" onclick="openQuickView('${product.id}')">
             Quick View
           </button>
-          <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp btn-sm" title="Order on WhatsApp">
+          <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp btn-sm" title="${isMadeToOrder ? 'Request Custom Recreation on WhatsApp' : 'Inquire on WhatsApp'}">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.073-2.18-.544-1.748-.724-2.883-2.484-2.969-2.599-.086-.116-.714-.951-.714-1.815 0-.865.452-1.29.613-1.464.162-.174.354-.217.472-.217.118 0 .236.002.339.006.109.005.254-.041.398.305.148.356.507 1.235.551 1.324.045.09.075.195.015.313-.059.12-.089.195-.178.299-.089.105-.187.234-.267.314-.09.09-.184.188-.079.369.105.18.468.772 1.004 1.249.691.614 1.274.805 1.454.895.18.09.286.076.392-.045.106-.12.453-.526.574-.707.121-.18.242-.15.405-.09.163.06 1.034.488 1.212.577.178.09.297.135.34.21.043.075.043.435-.101.84z"/>
             </svg>
-            Inquire
+            ${ctaBtnText}
           </a>
         </div>
       </div>
@@ -201,8 +228,17 @@ function openQuickView(id) {
   const modalContent = document.getElementById('quick-view-content');
   if (!modal || !modalContent) return;
 
+  const isMadeToOrder = product.availability_status === 'made_to_order';
   const waUrl = getWhatsAppInquiryUrl(product);
-  
+
+  const statusBadgeHTML = isMadeToOrder
+    ? `<span class="product-status-badge status-made-to-order">
+        <span class="status-indicator-dot"></span> Sold • Crafted on Order (3–5 Days)
+       </span>`
+    : `<span class="product-status-badge status-in-stock">
+        <span class="status-indicator-dot"></span> Available in Solapur Studio (Same-Day Pickup)
+       </span>`;
+
   modalContent.innerHTML = `
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-lg); align-items: start;">
       <div style="border-radius: var(--radius-lg); overflow: hidden; background: var(--color-bg-subtle); border: 1px solid var(--color-border); aspect-ratio: 1/1;">
@@ -214,7 +250,10 @@ function openQuickView(id) {
         />
       </div>
       <div>
-        <div class="product-category-tag" style="margin-bottom: 6px;">${product.categoryName} • ${product.sku || product.id}</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
+          <div class="product-category-tag">${product.categoryName} • ${product.sku || product.id}</div>
+          ${statusBadgeHTML}
+        </div>
         <h2 style="font-size: clamp(1.5rem, 2vw + 1rem, 2.2rem); margin-bottom: 8px;">${product.title}</h2>
         
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
@@ -223,9 +262,19 @@ function openQuickView(id) {
           ${product.badge ? `<span class="product-badge" style="position: static;">${product.badge}</span>` : ''}
         </div>
 
-        <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 20px; line-height: 1.6;">
+        <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 16px; line-height: 1.6;">
           ${product.description}
         </p>
+
+        ${isMadeToOrder ? `
+          <div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px; font-size: 0.85rem; color: #92400E;">
+            <strong>✨ Bespoke Creation:</strong> The original showroom sample of this piece was acquired at our Solapur boutique. Poonam can hand-sculpt a recreation tailored to your exact measurements, colorway, and nail shape.
+          </div>
+        ` : `
+          <div style="background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px; font-size: 0.85rem; color: #065F46;">
+            <strong>🟢 In-Studio Ready:</strong> Available right now on display at Shop No. 3, Alle Nagar, Solapur for instant in-store collection or express dispatch.
+          </div>
+        `}
 
         <div style="background: var(--color-bg-subtle); border-radius: var(--radius-md); padding: 14px; margin-bottom: 24px; font-size: 0.85rem; border: 1px solid var(--color-border);">
           <div style="font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-accent); margin-bottom: 8px;">Artisanal Specifications</div>
@@ -243,10 +292,10 @@ function openQuickView(id) {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.073-2.18-.544-1.748-.724-2.883-2.484-2.969-2.599-.086-.116-.714-.951-.714-1.815 0-.865.452-1.29.613-1.464.162-.174.354-.217.472-.217.118 0 .236.002.339.006.109.005.254-.041.398.305.148.356.507 1.235.551 1.324.045.09.075.195.015.313-.059.12-.089.195-.178.299-.089.105-.187.234-.267.314-.09.09-.184.188-.079.369.105.18.468.772 1.004 1.249.691.614 1.274.805 1.454.895.18.09.286.076.392-.045.106-.12.453-.526.574-.707.121-.18.242-.15.405-.09.163.06 1.034.488 1.212.577.178.09.297.135.34.21.043.075.043.435-.101.84z"/>
             </svg>
-            Inquire & Customize on WhatsApp
+            ${isMadeToOrder ? 'Request Custom Recreation on WhatsApp 💬' : 'Inquire & Reserve on WhatsApp 💬'}
           </a>
           <p style="font-size: 0.75rem; text-align: center; color: var(--color-text-light);">
-            ⚡ Connects directly with Poonam Somani on WhatsApp for custom sizing & confirmation.
+            ⚡ Connects directly with Poonam Somani on WhatsApp for instant confirmation.
           </p>
         </div>
       </div>

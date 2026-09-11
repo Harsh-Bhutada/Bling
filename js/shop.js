@@ -1,7 +1,7 @@
 /**
  * 💎 BLING BOUTIQUE — SHOP & ADVANCE FILTERING ENGINE
- * Multi-Attribute Filtering (Category, Aesthetic, Occasion, Price Tier, Search, Wishlist)
- * Real-time DOM updates & reactivity with BlingStorage
+ * Multi-Attribute Filtering (Category, Aesthetic, Occasion, Availability Status, Price Tier, Search, Wishlist)
+ * Real-time DOM updates & reactivity with BlingStorage & QR Scan Auto-Open
  */
 
 const ShopFilter = {
@@ -9,6 +9,7 @@ const ShopFilter = {
     category: 'all',
     style: 'all',
     occasion: 'all',
+    availability: 'all',
     priceTier: 'all',
     searchQuery: '',
     sortBy: 'featured',
@@ -20,7 +21,7 @@ const ShopFilter = {
     this._bindEvents();
     this.render();
 
-    // Listen for storage mutations from Admin
+    // Listen for storage mutations from Admin or Realtime Supabase
     window.addEventListener('bling:catalog-updated', () => {
       this.render();
     });
@@ -36,20 +37,40 @@ const ShopFilter = {
     const params = new URLSearchParams(window.location.search);
     const category = params.get('category');
     const filter = params.get('filter');
+    const sku = params.get('sku');
+    const status = params.get('status');
 
     if (category) {
       this.state.category = category;
       document.querySelectorAll('#category-pills .filter-pill').forEach(btn => {
-        if (btn.dataset.category === category) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
+        btn.classList.toggle('active', btn.dataset.category === category);
       });
     }
 
     if (filter === 'wishlist') {
       this.state.onlyWishlist = true;
+    }
+
+    if (status) {
+      this.state.availability = status;
+      const availSelect = document.getElementById('availability-filter');
+      if (availSelect) availSelect.value = status;
+    }
+
+    // Physical QR Scan Handler: automatically isolate & open Quick View
+    if (sku) {
+      this.state.searchQuery = sku.toLowerCase();
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) searchInput.value = sku;
+      
+      setTimeout(() => {
+        if (window.BlingStorage) {
+          const item = window.BlingStorage.getProductById(sku);
+          if (item && window.openQuickView) {
+            window.openQuickView(item.id);
+          }
+        }
+      }, 400);
     }
   },
 
@@ -97,6 +118,14 @@ const ShopFilter = {
     if (occasionSelect) {
       occasionSelect.addEventListener('change', (e) => {
         this.state.occasion = e.target.value;
+        this.render();
+      });
+    }
+
+    const availSelect = document.getElementById('availability-filter');
+    if (availSelect) {
+      availSelect.addEventListener('change', (e) => {
+        this.state.availability = e.target.value;
         this.render();
       });
     }
@@ -155,6 +184,11 @@ const ShopFilter = {
         return false;
       }
 
+      // Availability Status filter
+      if (this.state.availability !== 'all' && product.availability_status !== this.state.availability) {
+        return false;
+      }
+
       // Style / Aesthetic filter
       if (this.state.style !== 'all' && product.style !== this.state.style) {
         return false;
@@ -176,7 +210,7 @@ const ShopFilter = {
         return false;
       }
 
-      // Search Query
+      // Search Query (matches title, description, SKU, style, occasion)
       if (this.state.searchQuery) {
         const query = this.state.searchQuery;
         const matchesTitle = (product.title || '').toLowerCase().includes(query);
@@ -215,6 +249,7 @@ const ShopFilter = {
     const hasActiveFilters = this.state.category !== 'all' || 
                              this.state.style !== 'all' || 
                              this.state.occasion !== 'all' || 
+                             this.state.availability !== 'all' ||
                              this.state.priceTier !== 'all' || 
                              this.state.searchQuery !== '' || 
                              this.state.onlyWishlist;
@@ -250,6 +285,14 @@ const ShopFilter = {
         document.querySelectorAll('#category-pills .filter-pill').forEach(p => p.classList.toggle('active', p.dataset.category === 'all'));
       }});
     }
+    if (this.state.availability !== 'all') {
+      const label = this.state.availability === 'in_stock' ? 'Status: In Studio' : 'Status: Made to Order';
+      tags.push({ label, clear: () => {
+        this.state.availability = 'all';
+        const el = document.getElementById('availability-filter');
+        if (el) el.value = 'all';
+      }});
+    }
     if (this.state.style !== 'all') {
       tags.push({ label: `Style: ${this.state.style}`, clear: () => { 
         this.state.style = 'all'; 
@@ -279,19 +322,24 @@ const ShopFilter = {
       }});
     }
 
+    if (tags.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
     container.innerHTML = tags.map((t, idx) => `
       <span class="active-tag">
         ${t.label}
-        <button onclick="ShopFilter.clearTag(${idx})" title="Remove filter">✕</button>
+        <button type="button" aria-label="Remove filter" onclick="ShopFilter.clearTag(${idx})">✕</button>
       </span>
     `).join('');
 
-    this._activeTagHandlers = tags;
+    this._tagClearHandlers = tags.map(t => t.clear);
   },
 
   clearTag(idx) {
-    if (this._activeTagHandlers && this._activeTagHandlers[idx]) {
-      this._activeTagHandlers[idx].clear();
+    if (this._tagClearHandlers && this._tagClearHandlers[idx]) {
+      this._tagClearHandlers[idx]();
       this.render();
     }
   },
@@ -300,8 +348,10 @@ const ShopFilter = {
     this.state.category = 'all';
     this.state.style = 'all';
     this.state.occasion = 'all';
+    this.state.availability = 'all';
     this.state.priceTier = 'all';
     this.state.searchQuery = '';
+    this.state.sortBy = 'featured';
     this.state.onlyWishlist = false;
 
     // Reset UI elements
@@ -310,8 +360,12 @@ const ShopFilter = {
     if (styleEl) styleEl.value = 'all';
     const occEl = document.getElementById('occasion-filter');
     if (occEl) occEl.value = 'all';
+    const availEl = document.getElementById('availability-filter');
+    if (availEl) availEl.value = 'all';
     const priceEl = document.getElementById('price-filter');
     if (priceEl) priceEl.value = 'all';
+    const sortEl = document.getElementById('sort-select');
+    if (sortEl) sortEl.value = 'featured';
     const searchEl = document.getElementById('search-input');
     if (searchEl) searchEl.value = '';
     const wishBtn = document.getElementById('wishlist-filter-btn');
@@ -321,12 +375,10 @@ const ShopFilter = {
   }
 };
 
-window.ShopFilter = ShopFilter;
-window.resetAllFilters = () => ShopFilter.resetAllFilters();
-
-document.addEventListener('DOMContentLoaded', async () => {
-  if (window.BlingStorage) {
-    await window.BlingStorage.init();
-  }
+// Initialize on DOM Load
+document.addEventListener('DOMContentLoaded', () => {
   ShopFilter.init();
 });
+
+window.ShopFilter = ShopFilter;
+window.resetAllFilters = () => ShopFilter.resetAllFilters();

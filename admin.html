@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Management Portal | BLING Boutique</title>
-  <meta name="description" content="Manage the Bling Boutique catalogue. Add new handcrafted designs, edit prices and descriptions, or delete items. GitHub-Pages compatible." />
+  <meta name="description" content="Manage the Bling Boutique catalogue. 1-Tap Countertop availability status toggle, Display QR Tray generator, and Supabase cloud sync." />
   
   <link rel="stylesheet" href="css/tokens.css" />
   <link rel="stylesheet" href="css/style.css" />
@@ -125,6 +125,7 @@
       font-weight: 600;
       border: 1px solid var(--color-border);
       transition: all var(--transition-fast);
+      cursor: pointer;
     }
 
     .btn-table-edit:hover {
@@ -142,6 +143,7 @@
       font-weight: 600;
       border: 1px solid rgba(225, 29, 72, 0.2);
       transition: all var(--transition-fast);
+      cursor: pointer;
     }
 
     .btn-table-delete:hover {
@@ -194,7 +196,7 @@
       font-size: 0.875rem;
       font-weight: 600;
       box-shadow: var(--shadow-hover);
-      z-index: 150;
+      z-index: 10050;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -207,21 +209,87 @@
       transform: translateY(0);
       opacity: 1;
     }
+
+    .cloud-status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .cloud-online {
+      background: #ECFDF5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+    }
+
+    .cloud-local {
+      background: #EFF6FF;
+      color: #1E40AF;
+      border: 1px solid #BFDBFE;
+    }
   </style>
 </head>
 <body>
 
+  <!-- 🔒 7-Day Admin Security Gateway Overlay -->
+  <div id="admin-auth-overlay" class="admin-auth-overlay">
+    <div class="admin-auth-card">
+      <div class="auth-brand-logo">💎 BLING BOUTIQUE</div>
+      <div class="auth-subtitle">Solapur Studio Owner & Cashier Security Gateway</div>
+
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="tab-auth-pin" onclick="window.switchAuthTab('pin')">⚡ Fast Staff PIN</button>
+        <button type="button" class="auth-tab" id="tab-auth-email" onclick="window.switchAuthTab('email')">☁️ Supabase Auth</button>
+      </div>
+
+      <!-- Option 1: Fast-Access PIN Form -->
+      <form id="auth-pin-form">
+        <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 12px;">
+          Enter your 4-digit Boutique Cashier PIN:
+        </p>
+        <input type="password" id="auth-pin-input" class="auth-pin-input" maxlength="4" placeholder="••••" autocomplete="off" autofocus />
+        <div style="font-size: 0.72rem; color: var(--color-accent); margin-bottom: 16px;">
+          💡 Default Solapur Studio PIN: <strong>9284</strong>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Unlock Admin Portal</button>
+      </form>
+
+      <!-- Option 2: Supabase Email Login Form -->
+      <form id="auth-email-form" style="display: none;">
+        <div class="form-group" style="text-align: left; margin-bottom: 12px;">
+          <label for="auth-email-input">Admin Email</label>
+          <input type="email" id="auth-email-input" class="form-input" placeholder="poonam@blingfashion.in" />
+        </div>
+        <div class="form-group" style="text-align: left; margin-bottom: 16px;">
+          <label for="auth-password-input">Password</label>
+          <input type="password" id="auth-password-input" class="form-input" placeholder="••••••••" />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Verify with Supabase</button>
+      </form>
+
+      <div id="auth-error-msg" style="color: #E11D48; font-size: 0.8rem; margin-top: 12px; display: none; font-weight: 600;"></div>
+
+      <div style="margin-top: 20px; font-size: 0.75rem; color: var(--color-text-light); border-top: 1px solid var(--color-border); padding-top: 12px;">
+        🔒 <strong>7-Day Persistent Session:</strong> Once unlocked, this phone/computer stays signed in for 7 days so you don't need to re-login at the cash counter.
+      </div>
+    </div>
+  </div>
+
   <!-- Top Announcement Ribbon -->
-  <div class="announcement-bar" style="background: #171413;">
-    <span>⚙️ CLIENT DEMO ADMIN CONSOLE • LIVE LOCAL-PERSISTENCE ENABLED • 100% GITHUB PAGES COMPATIBLE</span>
+  <div class="announcement-bar no-print" style="background: #171413;">
+    <span>⚡ 1-TAP COUNTERTOP AVAILABILITY • DISPLAY QR TRAY GENERATOR • REALTIME SUPABASE CLOUD SYNC</span>
   </div>
 
   <!-- Global Header -->
-  <header class="site-header">
+  <header class="site-header no-print">
     <div class="container nav-wrap">
       <a href="index.html" class="brand-logo" aria-label="Bling Boutique Home">
         <span class="brand-name">BLING</span>
-        <span class="brand-tagline">Catalogue Management Console</span>
+        <span class="brand-tagline">Solapur Boutique Admin Console</span>
       </a>
 
       <nav aria-label="Main Navigation">
@@ -234,9 +302,12 @@
       </nav>
 
       <div class="header-actions">
-        <a href="shop.html" class="btn btn-secondary btn-sm">
-          ← Back to Boutique
-        </a>
+        <span id="session-badge" class="session-indicator-badge" title="Session stays active for 7 days">
+          🔒 7-Day Session Active
+        </span>
+        <button id="btn-admin-logout" class="btn btn-secondary btn-sm" title="Log out from admin session">
+          Log Out
+        </button>
       </div>
     </div>
   </header>
@@ -244,18 +315,21 @@
   <!-- Admin Dashboard Container -->
   <main class="container admin-dashboard">
     
-    <!-- Top Bar: Title & Demo Controls -->
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); flex-wrap: wrap; gap: var(--space-sm);">
+    <!-- Top Bar: Title & Mode Indicator -->
+    <div class="no-print" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-md); flex-wrap: wrap; gap: var(--space-sm);">
       <div>
-        <span class="text-eyebrow">Interactive Catalogue Controller</span>
+        <span class="text-eyebrow">Studio Inventory & POS Controller</span>
         <h1 class="text-h1" style="font-size: 2.2rem; margin-bottom: 4px;">Catalogue Inventory & Admin</h1>
         <p class="text-muted" style="font-size: 0.9rem;">
-          Add, edit, or remove products in real-time. Changes immediately reflect across the entire store.
+          Toggle availability status in 1.5 seconds, print display tray QR cards, or manage catalog details.
         </p>
       </div>
 
-      <!-- Pitch Demo Reset & Export Buttons -->
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <!-- Cloud Sync & Global Controls -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <span id="cloud-status-badge" class="cloud-status-indicator cloud-local">
+          ⚡ Local Demo Mode
+        </span>
         <button id="btn-export-json" class="btn btn-secondary btn-sm" title="Download current catalog as JSON">
           📥 Export JSON
         </button>
@@ -266,90 +340,226 @@
     </div>
 
     <!-- Summary Metrics -->
-    <div class="admin-top-stats">
+    <div class="admin-top-stats no-print">
       <div class="stat-card">
         <div class="stat-value" id="stat-total-products">20</div>
         <div class="stat-label">Total Creations</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="stat-total-nails">5</div>
-        <div class="stat-label">Press-On Nails</div>
+        <div class="stat-value" id="stat-in-stock" style="color: #065F46;">18</div>
+        <div class="stat-label">🟢 Ready in Studio</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="stat-total-necklaces">5</div>
-        <div class="stat-label">Necklaces</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="stat-total-hair">4</div>
-        <div class="stat-label">Hair Adornments</div>
+        <div class="stat-value" id="stat-made-to-order" style="color: #92400E;">2</div>
+        <div class="stat-label">🟡 Made to Order (Sold)</div>
       </div>
       <div class="stat-card">
         <div class="stat-value" id="stat-total-bestsellers">8</div>
-        <div class="stat-label">Active Bestsellers</div>
+        <div class="stat-label">★ Bestsellers</div>
       </div>
     </div>
 
-    <!-- Action Toolbar & Search -->
-    <div class="admin-toolbar">
-      <div style="flex: 1; min-width: 260px;">
-        <input 
-          type="text" 
-          id="admin-search-input" 
-          class="form-input" 
-          placeholder="Filter admin items by title, category, or SKU..."
-          style="padding: 8px 14px;"
-        />
-      </div>
+    <!-- Top Admin Tabs Navigation -->
+    <div class="admin-tab-nav no-print">
+      <button class="admin-tab-btn active" data-tab="tab-table">
+        📋 Catalogue Table
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-countertop">
+        ⚡ 1-Tap Countertop POS Mode
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-qr">
+        🖨️ Display QR Tray Tags
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-cloud">
+        ⚙️ Cloud Sync & Security
+      </button>
+    </div>
 
-      <div style="display: flex; gap: 10px; align-items: center;">
-        <button id="btn-open-add-modal" class="btn btn-primary btn-sm">
+    <!-- =========================================================================
+         TAB 1: CATALOGUE TABLE MANAGEMENT VIEW
+         ========================================================================= -->
+    <section id="view-table" class="admin-tab-content">
+      <div class="admin-toolbar">
+        <div style="display: flex; gap: 10px; align-items: center; flex: 1; max-width: 400px;">
+          <input 
+            type="search" 
+            id="admin-search-input" 
+            class="form-input" 
+            placeholder="Search creations by title, SKU, style, or category..." 
+          />
+        </div>
+
+        <button class="btn btn-primary btn-sm" id="btn-open-add-modal">
           + Add New Creation
         </button>
       </div>
-    </div>
 
-    <!-- Inventory Table View -->
-    <div class="admin-table-container">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Preview</th>
-            <th>SKU & Title</th>
-            <th>Category</th>
-            <th>Price</th>
-            <th>Style & Occasion</th>
-            <th>Badge</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="admin-table-body">
-          <!-- Injected via js/admin.js -->
-        </tbody>
-      </table>
-    </div>
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Preview</th>
+              <th>Creation Details</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Availability Status</th>
+              <th>Badge</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-table-body">
+            <!-- Rendered by admin.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         TAB 2: ⚡ 1-TAP COUNTERTOP POS MODE VIEW
+         ========================================================================= -->
+    <section id="view-countertop" class="admin-tab-content" style="display: none;">
+      <div class="admin-toolbar">
+        <div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 2px;">⚡ Cashier Countertop Quick-Toggle</h3>
+          <p class="text-muted" style="font-size: 0.8rem;">
+            When a piece sells at the Solapur store counter, tap "Made to Order" in 1.5 seconds. The website updates instantly.
+          </p>
+        </div>
+        <input 
+          type="search" 
+          id="countertop-search-input" 
+          class="form-input" 
+          placeholder="Filter counter items..." 
+          style="max-width: 250px;"
+        />
+      </div>
+
+      <div id="countertop-grid" class="countertop-grid">
+        <!-- Rendered dynamically by admin.js -->
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         TAB 3: 🖨️ DISPLAY QR TRAY TAGS VIEW
+         ========================================================================= -->
+    <section id="view-qr" class="admin-tab-content" style="display: none;">
+      <div class="admin-toolbar no-print">
+        <div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 2px;">🖨️ Printable Velvet Tray QR Cards (2" × 2")</h3>
+          <p class="text-muted" style="font-size: 0.8rem;">
+            Place these elegant gold-bordered cards next to products on your boutique trays. Customers scan to view sizing; staff scan to 1-tap toggle.
+          </p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="window.print()">
+          🖨️ Print Tray QR Sheet
+        </button>
+      </div>
+
+      <div id="qr-tray-section">
+        <div id="qr-tray-grid" class="qr-tray-grid">
+          <!-- Rendered dynamically by admin.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         TAB 4: ⚙️ CLOUD SYNC & SECURITY SETTINGS VIEW
+         ========================================================================= -->
+    <section id="view-cloud" class="admin-tab-content no-print" style="display: none;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-lg);">
+        
+        <!-- Supabase Credentials Manager -->
+        <div class="stat-card" style="padding: var(--space-lg);">
+          <h3 style="font-size: 1.25rem; margin-bottom: 6px;">☁️ Supabase Cloud Database Connection</h3>
+          <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 20px;">
+            Connect your free Supabase database. These credentials are saved safely in your browser storage and never published to GitHub.
+          </p>
+
+          <form id="cloud-credentials-form">
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label for="cloud-url-input">Supabase Project URL</label>
+              <input type="url" id="cloud-url-input" class="form-input" placeholder="https://your-project.supabase.co" />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+              <label for="cloud-key-input">Supabase Anon / Public Key</label>
+              <textarea id="cloud-key-input" class="form-textarea" rows="3" placeholder="eyJhbGciOi..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="submit" class="btn btn-primary btn-sm">Save & Connect Cloud</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-clear-cloud">Clear Credentials</button>
+            </div>
+          </form>
+
+          <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--color-border);" />
+
+          <!-- 1-Click Database Seed -->
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 4px;">🚀 One-Click Database Seeding</h4>
+            <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 12px;">
+              Upload all 20 handcrafted boutique creations from this catalog into your fresh Supabase database in 1 click:
+            </p>
+            <button type="button" class="btn btn-wine btn-sm" id="btn-seed-supabase">
+              🚀 Seed All 20 Products to Supabase
+            </button>
+          </div>
+        </div>
+
+        <!-- Security & PIN Settings -->
+        <div class="stat-card" style="padding: var(--space-lg);">
+          <h3 style="font-size: 1.25rem; margin-bottom: 6px;">🔒 Cashier Fast-Access PIN</h3>
+          <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 20px;">
+            Set the 4-digit PIN staff uses to unlock Countertop Mode at the Solapur billing counter.
+          </p>
+
+          <form id="change-pin-form">
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label for="new-pin-input">New 4-Digit Boutique PIN</label>
+              <input type="password" id="new-pin-input" class="form-input" maxlength="4" placeholder="e.g. 9284" style="max-width: 180px;" />
+            </div>
+            <button type="submit" class="btn btn-secondary btn-sm">Update Boutique PIN</button>
+          </form>
+
+          <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--color-border);" />
+
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 6px;">🛡️ Security Architecture Status</h4>
+            <ul style="list-style: none; font-size: 0.825rem; display: flex; flex-direction: column; gap: 8px; color: var(--color-text-main);">
+              <li>✅ <strong>Row Level Security:</strong> Public readers can only view products; only admins can edit.</li>
+              <li>✅ <strong>7-Day Session:</strong> Unlocked devices remain authorized for 1 week.</li>
+              <li>✅ <strong>Zero-Failure Fallback:</strong> If cloud is offline, catalog runs on local storage.</li>
+              <li>✅ <strong>Git Security:</strong> Config files are automatically added to <code>.gitignore</code>.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
 
   </main>
 
-  <!-- Add / Edit Product Modal -->
-  <div id="product-form-modal" class="modal-overlay" role="dialog" aria-modal="true">
-    <div class="modal-container" style="max-width: 680px;">
-      <button class="modal-close-btn" id="close-form-modal">✕</button>
+  <!-- Product Add / Edit Modal -->
+  <div id="product-form-modal" class="modal-overlay no-print" role="dialog" aria-modal="true">
+    <div class="modal-container" style="max-width: 650px;">
+      <button class="modal-close-btn" id="close-form-modal" aria-label="Close form">✕</button>
       
-      <h2 id="modal-form-title" class="text-h2" style="font-size: 1.6rem; margin-bottom: var(--space-md);">
-        Add New Creation
-      </h2>
+      <div style="margin-bottom: var(--space-md);">
+        <h2 id="modal-form-title" style="font-size: 1.5rem; margin-bottom: 4px;">Add New Handcrafted Creation</h2>
+        <p class="text-muted" style="font-size: 0.85rem;">Fill in the product details to publish to the digital catalogue.</p>
+      </div>
 
       <form id="product-admin-form">
-        <input type="hidden" id="form-product-id" value="" />
+        <input type="hidden" id="form-product-id" />
 
         <div class="form-grid">
           <div class="form-group" style="grid-column: 1 / -1;">
-            <label for="form-title">Product Title *</label>
-            <input type="text" id="form-title" class="form-input" placeholder="e.g. Celestial Golden Snitch Press-On Set" required />
+            <label for="form-title">Creation Title *</label>
+            <input type="text" id="form-title" class="form-input" placeholder="e.g. Royal Emerald Silk & Pearl Choker" required />
           </div>
 
           <div class="form-group">
-            <label for="form-category">Category *</label>
+            <label for="form-category">Vertical Category *</label>
             <select id="form-category" class="form-select" required>
               <option value="nails">Press-On Nails</option>
               <option value="necklaces">Necklaces</option>
@@ -360,13 +570,21 @@
           </div>
 
           <div class="form-group">
-            <label for="form-price">Price (₹) *</label>
-            <input type="number" id="form-price" class="form-input" placeholder="e.g. 1299" required min="100" />
+            <label for="form-availability">Availability Status *</label>
+            <select id="form-availability" class="form-select">
+              <option value="in_stock">🟢 Available in Studio (Pickup)</option>
+              <option value="made_to_order">🟡 Crafted on Order (Sold)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="form-price">Boutique Price (₹) *</label>
+            <input type="number" id="form-price" class="form-input" placeholder="e.g. 1299" min="1" required />
           </div>
 
           <div class="form-group">
             <label for="form-orig-price">Original / MRP (₹)</label>
-            <input type="number" id="form-orig-price" class="form-input" placeholder="e.g. 1699" min="100" />
+            <input type="number" id="form-orig-price" class="form-input" placeholder="e.g. 1699" min="1" />
           </div>
 
           <div class="form-group">
@@ -394,7 +612,7 @@
           </div>
         </div>
 
-        <!-- Image Selection: URL or Local Upload -->
+        <!-- Image Selection -->
         <div style="background: var(--color-bg-subtle); padding: 14px; border-radius: var(--radius-md); margin-bottom: var(--space-md); border: 1px solid var(--color-border);">
           <label style="display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: var(--color-text-muted); margin-bottom: 6px;">
             Product Photography Source *
@@ -440,7 +658,13 @@
     <span id="toast-message">Catalogue updated successfully!</span>
   </div>
 
-  <!-- Scripts -->
+  <!-- Third-Party CDNs: Supabase JS & QRious QR Code Generator -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+
+  <!-- Bling Scripts -->
+  <script src="js/supabase-config.js" onerror="console.info('Using in-browser config / local fallback')"></script>
+  <script src="js/supabase-client.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/admin.js"></script>
 </body>

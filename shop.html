@@ -292,6 +292,16 @@
             </select>
           </div>
 
+          <!-- Filter: Availability Status -->
+          <div class="filter-group">
+            <label for="availability-filter">Studio Availability</label>
+            <select id="availability-filter" class="filter-select">
+              <option value="all">All Statuses</option>
+              <option value="in_stock">🟢 In Studio (Ready)</option>
+              <option value="made_to_order">🟡 Crafted on Order (Sold)</option>
+            </select>
+          </div>
+
           <!-- Sort Filter -->
           <div class="filter-group">
             <label for="sort-select">Sort By</label>
@@ -314,9 +324,9 @@
 
       </div>
 
-      <!-- Main Product Grid -->
-      <div id="catalog-grid" class="product-grid">
-        <!-- Injected dynamically by js/shop.js -->
+      <!-- Main Catalogue Product Grid -->
+      <div id="catalog-grid" class="product-grid" style="padding-top: var(--space-md);">
+        <!-- Injected via shop.js -->
       </div>
 
       <!-- Empty State -->
@@ -362,7 +372,10 @@
     </a>
   </div>
 
-  <!-- Scripts -->
+  <!-- Supabase & Persistence Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js" onerror="console.info('Using in-browser config / local fallback')"></script>
+  <script src="js/supabase-client.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/app.js"></script>
   <script src="js/shop.js"></script>
