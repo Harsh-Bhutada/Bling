@@ -1,7 +1,7 @@
 /**
  * 💎 BLING BOUTIQUE — ADMIN PORTAL & COUNTERTOP CONTROLLER
  * Full Management Suite:
- * 1. 7-Day Session & Fast-PIN Security Gateway
+ * 1. 7-Day Session & Supabase Admin Security Gateway
  * 2. ⚡ 1-Tap Countertop POS View (1.5-second stock toggling)
  * 3. 🖨️ Vector Display QR Tray Tag Generator (for boutique velvet trays)
  * 4. ⚙️ Supabase Cloud Sync Manager & 1-Click Database Seeder
@@ -16,8 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // DOM Elements
   const authOverlay = document.getElementById('admin-auth-overlay');
-  const authPinForm = document.getElementById('auth-pin-form');
-  const authPinInput = document.getElementById('auth-pin-input');
   const authEmailForm = document.getElementById('auth-email-form');
   const authEmailInput = document.getElementById('auth-email-input');
   const authPassInput = document.getElementById('auth-password-input');
@@ -77,23 +75,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cloudKeyInput = document.getElementById('cloud-key-input');
   const btnClearCloud = document.getElementById('btn-clear-cloud');
   const btnSeedSupabase = document.getElementById('btn-seed-supabase');
-  const changePinForm = document.getElementById('change-pin-form');
-  const newPinInput = document.getElementById('new-pin-input');
 
   /* =========================================================================
      1. AUTHENTICATION GATEWAY (7-DAY PERSISTENT SESSION)
      ========================================================================= */
 
-  function checkAuthentication() {
+  async function checkAuthentication() {
     if (!window.BlingAuth) return true;
-    const isAuth = window.BlingAuth.isAuthenticated();
+    let isAuth = window.BlingAuth.isAuthenticated();
+    if (!isAuth && window.BlingAuth.checkSession) {
+      isAuth = await window.BlingAuth.checkSession();
+    }
 
     if (!isAuth) {
       authOverlay.style.display = 'flex';
-      if (authPinInput) authPinInput.focus();
+      if (authEmailInput) authEmailInput.focus();
     } else {
       authOverlay.style.display = 'none';
       updateSessionBadge();
+      updateAdminUserDisplay();
     }
     return isAuth;
   }
@@ -104,43 +104,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     sessionBadge.textContent = `🔒 7-Day Session Active (${remainingDays}d left)`;
   }
 
-  // Switch Auth Tab (PIN vs Supabase Email)
-  window.switchAuthTab = function (tab) {
-    const tabPinBtn = document.getElementById('tab-auth-pin');
-    const tabEmailBtn = document.getElementById('tab-auth-email');
-    authErrorMsg.style.display = 'none';
-
-    if (tab === 'pin') {
-      tabPinBtn.classList.add('active');
-      tabEmailBtn.classList.remove('active');
-      authPinForm.style.display = 'block';
-      authEmailForm.style.display = 'none';
-      if (authPinInput) authPinInput.focus();
-    } else {
-      tabEmailBtn.classList.add('active');
-      tabPinBtn.classList.remove('active');
-      authPinForm.style.display = 'none';
-      authEmailForm.style.display = 'block';
-      if (authEmailInput) authEmailInput.focus();
+  function updateAdminUserDisplay() {
+    const activeAdminEl = document.getElementById('active-admin-user');
+    if (activeAdminEl && window.BlingAuth) {
+      const email = window.BlingAuth.getUserEmail();
+      activeAdminEl.textContent = `🟢 ${email} (Supabase Authenticated)`;
     }
-  };
-
-  // Handle PIN Unlock
-  if (authPinForm) {
-    authPinForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const enteredPin = authPinInput.value.trim();
-      if (window.BlingAuth && window.BlingAuth.loginWithPin(enteredPin)) {
-        authOverlay.style.display = 'none';
-        authPinInput.value = '';
-        authErrorMsg.style.display = 'none';
-        showToast('🔓 Boutique session unlocked for 7 days!');
-        updateSessionBadge();
-      } else {
-        authErrorMsg.textContent = '❌ Incorrect PIN. (Default: 9284)';
-        authErrorMsg.style.display = 'block';
-      }
-    });
   }
 
   // Handle Supabase Email Unlock
@@ -157,6 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         authErrorMsg.style.display = 'none';
         showToast('🔓 Supabase admin verified for 7 days!');
         updateSessionBadge();
+        updateAdminUserDisplay();
       } catch (err) {
         authErrorMsg.textContent = `❌ ${err.message || 'Login failed'}`;
         authErrorMsg.style.display = 'block';
@@ -357,6 +327,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     cloudUrlInput.value = localStorage.getItem('bling_supabase_url') || (window.BLING_SUPABASE_CONFIG?.url || '');
     cloudKeyInput.value = localStorage.getItem('bling_supabase_anon_key') || (window.BLING_SUPABASE_CONFIG?.anonKey || '');
     updateCloudBadge();
+    updateAdminUserDisplay();
   }
 
   function updateCloudBadge() {
@@ -419,20 +390,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  if (changePinForm) {
-    changePinForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const newPin = newPinInput.value.trim();
-      if (newPin && newPin.length === 4) {
-        if (window.BlingAuth && window.BlingAuth.setCustomPin(newPin)) {
-          showToast(`✅ Boutique PIN updated to ${newPin}!`);
-          newPinInput.value = '';
-        }
-      } else {
-        alert('PIN must be exactly 4 digits.');
-      }
-    });
-  }
+
 
   /* =========================================================================
      6. CATALOGUE TABLE & FULL CRUD CONTROLLER

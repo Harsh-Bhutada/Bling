@@ -1,13 +1,12 @@
 /**
  * 💎 BLING BOUTIQUE — SUPABASE CLIENT & AUTH GATEWAY
- * Manages Cloud Database Connection, 7-Day Persistent Session, and Fast-Access PIN
+ * Manages Cloud Database Connection, 7-Day Persistent Session, and Supabase Security Gateway
  */
 
 (function () {
   const SESSION_KEY = 'bling_admin_auth_session_v1';
   const SESSION_TIMESTAMP_KEY = 'bling_admin_auth_time_v1';
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-  const DEFAULT_BOUTIQUE_PIN = '9284'; // Default PIN (Poonam's phone prefix/suffix 9284557339)
 
   const BlingSupabase = {
     client: null,
@@ -85,7 +84,7 @@
   };
 
   /**
-   * 7-Day Persistent Session & Fast-PIN Authentication
+   * 7-Day Persistent Session & Supabase Authentication Gateway
    */
   const BlingAuth = {
     /**
@@ -115,6 +114,26 @@
     },
 
     /**
+     * Asynchronously verifies active Supabase session
+     */
+    async checkSession() {
+      const client = BlingSupabase.getClient();
+      if (client && client.auth) {
+        try {
+          const { data } = await client.auth.getSession();
+          if (data && data.session) {
+            localStorage.setItem('bling_admin_user_email', data.session.user?.email || 'admin');
+            this._setSession('supabase_auth_' + (data.session.user?.id || 'admin'));
+            return true;
+          }
+        } catch (e) {
+          console.warn('Session check fallback:', e);
+        }
+      }
+      return this.isAuthenticated();
+    },
+
+    /**
      * Get remaining days in current session
      */
     getSessionRemainingDays() {
@@ -125,6 +144,13 @@
     },
 
     /**
+     * Get the logged in admin user email
+     */
+    getUserEmail() {
+      return localStorage.getItem('bling_admin_user_email') || 'poonam@blingfashion.in';
+    },
+
+    /**
      * Login using Supabase Auth (Email + Password)
      */
     async loginWithEmailPassword(email, password) {
@@ -132,39 +158,18 @@
       if (client) {
         const { data, error } = await client.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        localStorage.setItem('bling_admin_user_email', data.user?.email || email);
         this._setSession('supabase_auth_' + (data.user?.id || 'admin'));
         return { success: true, user: data.user };
       } else {
         // Local mode fallback authentication: verify client admin email
         if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('poonam')) {
+          localStorage.setItem('bling_admin_user_email', email);
           this._setSession('local_admin_' + Date.now());
           return { success: true, user: { email } };
         }
         throw new Error('Invalid credentials');
       }
-    },
-
-    /**
-     * Fast-Access Countertop PIN Login (Default: 9284)
-     */
-    loginWithPin(enteredPin) {
-      const savedPin = localStorage.getItem('bling_custom_admin_pin') || DEFAULT_BOUTIQUE_PIN;
-      if (enteredPin && enteredPin.trim() === savedPin.trim()) {
-        this._setSession('pin_auth_' + Date.now());
-        return true;
-      }
-      return false;
-    },
-
-    /**
-     * Set a custom PIN (can be changed by client inside settings)
-     */
-    setCustomPin(newPin) {
-      if (newPin && newPin.length >= 4) {
-        localStorage.setItem('bling_custom_admin_pin', newPin.trim());
-        return true;
-      }
-      return false;
     },
 
     /**
@@ -179,6 +184,7 @@
       } catch (e) {}
       localStorage.removeItem(SESSION_KEY);
       localStorage.removeItem(SESSION_TIMESTAMP_KEY);
+      localStorage.removeItem('bling_admin_user_email');
       window.dispatchEvent(new CustomEvent('bling:auth-changed', { detail: { authenticated: false } }));
     },
 

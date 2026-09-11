@@ -235,46 +235,29 @@
 </head>
 <body>
 
-  <!-- 🔒 7-Day Admin Security Gateway Overlay -->
+  <!-- 🔒 Supabase Admin Security Gateway Overlay -->
   <div id="admin-auth-overlay" class="admin-auth-overlay">
     <div class="admin-auth-card">
       <div class="auth-brand-logo">💎 BLING BOUTIQUE</div>
-      <div class="auth-subtitle">Solapur Studio Owner & Cashier Security Gateway</div>
+      <div class="auth-subtitle">Solapur Studio Owner & Admin Security Gateway</div>
 
-      <div class="auth-tabs">
-        <button type="button" class="auth-tab active" id="tab-auth-pin" onclick="window.switchAuthTab('pin')">⚡ Fast Staff PIN</button>
-        <button type="button" class="auth-tab" id="tab-auth-email" onclick="window.switchAuthTab('email')">☁️ Supabase Auth</button>
-      </div>
-
-      <!-- Option 1: Fast-Access PIN Form -->
-      <form id="auth-pin-form">
-        <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 12px;">
-          Enter your 4-digit Boutique Cashier PIN:
-        </p>
-        <input type="password" id="auth-pin-input" class="auth-pin-input" maxlength="4" placeholder="••••" autocomplete="off" autofocus />
-        <div style="font-size: 0.72rem; color: var(--color-accent); margin-bottom: 16px;">
-          💡 Default Solapur Studio PIN: <strong>9284</strong>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%;">Unlock Admin Portal</button>
-      </form>
-
-      <!-- Option 2: Supabase Email Login Form -->
-      <form id="auth-email-form" style="display: none;">
-        <div class="form-group" style="text-align: left; margin-bottom: 12px;">
+      <!-- Supabase Email Login Form -->
+      <form id="auth-email-form">
+        <div class="form-group" style="text-align: left; margin-bottom: 14px;">
           <label for="auth-email-input">Admin Email</label>
-          <input type="email" id="auth-email-input" class="form-input" placeholder="poonam@blingfashion.in" />
+          <input type="email" id="auth-email-input" class="form-input" placeholder="poonam@blingfashion.in" required autofocus />
         </div>
-        <div class="form-group" style="text-align: left; margin-bottom: 16px;">
+        <div class="form-group" style="text-align: left; margin-bottom: 20px;">
           <label for="auth-password-input">Password</label>
-          <input type="password" id="auth-password-input" class="form-input" placeholder="••••••••" />
+          <input type="password" id="auth-password-input" class="form-input" placeholder="••••••••" required />
         </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%;">Verify with Supabase</button>
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700;">Sign In to Boutique Admin</button>
       </form>
 
-      <div id="auth-error-msg" style="color: #E11D48; font-size: 0.8rem; margin-top: 12px; display: none; font-weight: 600;"></div>
+      <div id="auth-error-msg" style="color: #E11D48; font-size: 0.8rem; margin-top: 14px; display: none; font-weight: 600;"></div>
 
-      <div style="margin-top: 20px; font-size: 0.75rem; color: var(--color-text-light); border-top: 1px solid var(--color-border); padding-top: 12px;">
-        🔒 <strong>7-Day Persistent Session:</strong> Once unlocked, this phone/computer stays signed in for 7 days so you don't need to re-login at the cash counter.
+      <div style="margin-top: 24px; font-size: 0.75rem; color: var(--color-text-light); border-top: 1px solid var(--color-border); padding-top: 12px;">
+        🔒 <strong>Persistent Device Session:</strong> Once signed in, this phone or laptop remains authorized with Supabase so you don't have to re-enter your password during counter sales.
       </div>
     </div>
   </div>
@@ -506,30 +489,26 @@
           </div>
         </div>
 
-        <!-- Security & PIN Settings -->
+        <!-- Security & Supabase RLS Status -->
         <div class="stat-card" style="padding: var(--space-lg);">
-          <h3 style="font-size: 1.25rem; margin-bottom: 6px;">🔒 Cashier Fast-Access PIN</h3>
+          <h3 style="font-size: 1.25rem; margin-bottom: 6px;">🔒 Supabase Auth & Security</h3>
           <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 20px;">
-            Set the 4-digit PIN staff uses to unlock Countertop Mode at the Solapur billing counter.
+            Your database write operations are secured with Supabase Row Level Security (RLS). Only authenticated admin sessions can modify creations.
           </p>
 
-          <form id="change-pin-form">
-            <div class="form-group" style="margin-bottom: 16px;">
-              <label for="new-pin-input">New 4-Digit Boutique PIN</label>
-              <input type="password" id="new-pin-input" class="form-input" maxlength="4" placeholder="e.g. 9284" style="max-width: 180px;" />
-            </div>
-            <button type="submit" class="btn btn-secondary btn-sm">Update Boutique PIN</button>
-          </form>
+          <div style="background: var(--color-bg-subtle); border-radius: var(--radius-md); padding: 14px; border: 1px solid var(--color-border); margin-bottom: 20px;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-muted); font-weight: 700; margin-bottom: 4px;">Signed In Administrator</div>
+            <div id="active-admin-user" style="font-size: 0.9rem; font-weight: 700; color: var(--color-accent-hover);">Verifying session...</div>
+          </div>
 
-          <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--color-border);" />
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--color-border);" />
 
           <div>
             <h4 style="font-size: 0.95rem; margin-bottom: 6px;">🛡️ Security Architecture Status</h4>
             <ul style="list-style: none; font-size: 0.825rem; display: flex; flex-direction: column; gap: 8px; color: var(--color-text-main);">
-              <li>✅ <strong>Row Level Security:</strong> Public readers can only view products; only admins can edit.</li>
-              <li>✅ <strong>7-Day Session:</strong> Unlocked devices remain authorized for 1 week.</li>
-              <li>✅ <strong>Zero-Failure Fallback:</strong> If cloud is offline, catalog runs on local storage.</li>
-              <li>✅ <strong>Git Security:</strong> Config files are automatically added to <code>.gitignore</code>.</li>
+              <li>✅ <strong>PostgreSQL RLS:</strong> Public users can only read products; all updates require authenticated JWT token.</li>
+              <li>✅ <strong>Persistent Device Session:</strong> Stays signed in automatically on this phone/computer.</li>
+              <li>✅ <strong>Zero-Failure Fallback:</strong> If offline, local persistence keeps the catalogue working.</li>
             </ul>
           </div>
         </div>
