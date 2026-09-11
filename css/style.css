@@ -1097,6 +1097,21 @@ h1, h2, h3, h4, .font-heading {
   box-shadow: var(--shadow-md);
 }
 
+.countertop-card-highlight {
+  border: 2px solid var(--color-accent) !important;
+  box-shadow: 0 0 0 4px var(--color-accent-glow), var(--shadow-md) !important;
+  animation: pulseCountertopHighlight 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulseCountertopHighlight {
+  0% {
+    box-shadow: 0 0 0 3px var(--color-accent-glow), var(--shadow-sm);
+  }
+  100% {
+    box-shadow: 0 0 0 8px rgba(197, 154, 111, 0.4), var(--shadow-hover);
+  }
+}
+
 .countertop-card-header {
   display: flex;
   gap: 12px;

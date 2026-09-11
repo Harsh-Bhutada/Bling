@@ -57,8 +57,15 @@ const ShopFilter = {
       if (availSelect) availSelect.value = status;
     }
 
-    // Physical QR Scan Handler: automatically isolate & open Quick View
+    // Physical QR Scan Handler:
     if (sku) {
+      // 1. If scanned from an Admin device (Poonam at counter), jump directly to 1-Tap Countertop POS!
+      if (window.BlingAuth && window.BlingAuth.isAuthenticated()) {
+        window.location.replace(`admin.html?tab=countertop&sku=${encodeURIComponent(sku)}`);
+        return;
+      }
+
+      // 2. Otherwise (customer scanning), isolate creation and pop up Quick View modal
       this.state.searchQuery = sku.toLowerCase();
       const searchInput = document.getElementById('search-input');
       if (searchInput) searchInput.value = sku;

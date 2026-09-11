@@ -231,6 +231,24 @@ function openQuickView(id) {
   const isMadeToOrder = product.availability_status === 'made_to_order';
   const waUrl = getWhatsAppInquiryUrl(product);
 
+  const isAdmin = window.BlingAuth && window.BlingAuth.isAuthenticated();
+  const adminBarHTML = isAdmin ? `
+    <div style="background: rgba(197, 154, 111, 0.12); border: 1.5px solid var(--color-accent); border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-accent-hover);">⚡ 1-Tap Countertop POS (Admin)</span>
+        <a href="admin.html?tab=countertop&sku=${encodeURIComponent(product.sku || product.id)}" style="font-size: 0.75rem; color: var(--color-text-muted); text-decoration: underline;">Full POS View ↗</a>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <button type="button" class="btn-toggle-stock ${!isMadeToOrder ? 'active-in-stock' : ''}" onclick="window.quickToggleFromShopModal('${product.id}', 'in_stock')">
+          <span class="status-indicator-dot" style="background: #10B981;"></span> In Studio
+        </button>
+        <button type="button" class="btn-toggle-stock ${isMadeToOrder ? 'active-made-to-order' : ''}" onclick="window.quickToggleFromShopModal('${product.id}', 'made_to_order')">
+          <span class="status-indicator-dot" style="background: #F59E0B;"></span> Made to Order (Sold)
+        </button>
+      </div>
+    </div>
+  ` : '';
+
   const statusBadgeHTML = isMadeToOrder
     ? `<span class="product-status-badge status-made-to-order">
         <span class="status-indicator-dot"></span> Sold • Crafted on Order (3–5 Days)
@@ -287,6 +305,8 @@ function openQuickView(id) {
           </ul>
         </div>
 
+        ${adminBarHTML}
+
         <div style="display: flex; flex-direction: column; gap: 10px;">
           <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp" style="width: 100%;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -313,6 +333,15 @@ function closeQuickView() {
     document.body.style.overflow = '';
   }
 }
+
+// 1-Tap stock toggle directly from quick view modal (for admin)
+window.quickToggleFromShopModal = async function(id, targetStatus) {
+  if (!window.BlingStorage) return;
+  const updated = await window.BlingStorage.toggleAvailability(id, targetStatus);
+  if (updated) {
+    openQuickView(id);
+  }
+};
 
 // Expose modal helpers globally
 window.openQuickView = openQuickView;

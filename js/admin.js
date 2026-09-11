@@ -197,7 +197,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    countertopGrid.innerHTML = items.map(p => {
+    const isolationBanner = filterQuery ? `
+      <div style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; background: #FFFBEB; border: 1px solid #FDE68A; padding: 12px 16px; border-radius: var(--radius-md); font-size: 0.85rem; color: #92400E; margin-bottom: 8px;">
+        <div>
+          🎯 <strong>Scanned Tray Tag Isolated:</strong> 1-Tap below to switch availability.
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" style="padding: 4px 12px; font-size: 0.75rem;" onclick="window.clearCountertopFilter()">
+          Show All Creations
+        </button>
+      </div>
+    ` : '';
+
+    countertopGrid.innerHTML = isolationBanner + items.map(p => {
       const isInStock = p.availability_status !== 'made_to_order';
 
       return `
@@ -269,6 +280,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderCountertopPOS(countertopSearchInput.value.trim().toLowerCase());
     });
   }
+
+  // Clear Countertop Filter helper
+  window.clearCountertopFilter = function () {
+    if (countertopSearchInput) countertopSearchInput.value = '';
+    renderCountertopPOS('');
+  };
 
   /* =========================================================================
      4. 🖨️ DISPLAY QR TRAY TAG GENERATOR (VECTOR QR VIA QRious)
@@ -398,6 +415,42 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   renderDashboard();
   updateCloudBadge();
+
+  // Handle URL Query Params Router (e.g. admin.html?tab=countertop&sku=BLING-2026-N01)
+  function handleAdminQueryParams() {
+    const params = new URLSearchParams(window.location.search);
+    const targetTab = params.get('tab');
+    const targetSku = params.get('sku');
+
+    if (targetTab === 'countertop' || targetSku) {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      const countertopBtn = document.querySelector('.admin-tab-btn[data-tab="tab-countertop"]');
+      if (countertopBtn) countertopBtn.classList.add('active');
+
+      Object.keys(tabContents).forEach(key => {
+        if (tabContents[key]) {
+          tabContents[key].style.display = (key === 'tab-countertop') ? 'block' : 'none';
+        }
+      });
+
+      if (targetSku) {
+        if (countertopSearchInput) countertopSearchInput.value = targetSku;
+        renderCountertopPOS(targetSku.toLowerCase());
+
+        setTimeout(() => {
+          const card = document.querySelector(`.countertop-card[data-sku="${targetSku}"]`);
+          if (card) {
+            card.classList.add('countertop-card-highlight');
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 300);
+      } else {
+        renderCountertopPOS();
+      }
+    }
+  }
+
+  handleAdminQueryParams();
 
   // Search filter
   if (searchInput) {
