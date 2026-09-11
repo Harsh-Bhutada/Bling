@@ -17,9 +17,9 @@
      * Initializes Supabase client using in-browser stored credentials or window.BLING_SUPABASE_CONFIG
      */
     init() {
-      // 1. Check in-browser stored credentials first (Admin Cloud Sync manager)
-      let url = localStorage.getItem('bling_supabase_url') || '';
-      let anonKey = localStorage.getItem('bling_supabase_anon_key') || '';
+      // 1. Check in-browser stored credentials first, fallback to default project credentials
+      let url = localStorage.getItem('bling_supabase_url') || 'https://tclpvzkwpkvddaxfhxmg.supabase.co';
+      let anonKey = localStorage.getItem('bling_supabase_anon_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjbHB2emt3cGt2ZGRheGZoeG1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNDQxMTQsImV4cCI6MjEwNDcyMDExNH0.lI2yT7MRFGLwzi6WYZ_1aQLTmSzhtaEJtV-T2oPUKL0';
 
       // 2. Fall back to window.BLING_SUPABASE_CONFIG if available
       if ((!url || !anonKey) && window.BLING_SUPABASE_CONFIG) {

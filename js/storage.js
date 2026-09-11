@@ -192,17 +192,23 @@ const BlingStorage = {
     this._persist();
     this._notify('update', current);
 
-    // Sync to Supabase if active
-    if (this._isCloudSync && window.BlingSupabase) {
+    // Sync to Supabase if configured
+    if (window.BlingSupabase && window.BlingSupabase.isConfigured) {
       const client = window.BlingSupabase.getClient();
       if (client) {
         try {
-          await client
+          const { error } = await client
             .from('products')
             .update({ availability_status: newStatus })
-            .match({ id: current.id });
+            .eq('id', current.id);
+          if (error) {
+            console.warn('Cloud update failed for availability_status:', error.message);
+          } else {
+            this._isCloudSync = true;
+            console.log(`💎 Cloud update synced: ${current.sku} -> ${newStatus}`);
+          }
         } catch (e) {
-          console.warn('Cloud update failed for availability_status:', e);
+          console.warn('Cloud update exception:', e);
         }
       }
     }
@@ -299,7 +305,7 @@ const BlingStorage = {
     this._notify('update', updated);
 
     // Cloud update
-    if (this._isCloudSync && window.BlingSupabase) {
+    if (window.BlingSupabase && window.BlingSupabase.isConfigured) {
       const client = window.BlingSupabase.getClient();
       if (client) {
         try {
@@ -337,7 +343,7 @@ const BlingStorage = {
     this._notify('delete', { id });
 
     // Cloud delete
-    if (this._isCloudSync && window.BlingSupabase) {
+    if (window.BlingSupabase && window.BlingSupabase.isConfigured) {
       const client = window.BlingSupabase.getClient();
       if (client) {
         try {
