@@ -69,11 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let currentImageData = '';
 
-  // Cloud Sync Form
-  const cloudForm = document.getElementById('cloud-credentials-form');
-  const cloudUrlInput = document.getElementById('cloud-url-input');
-  const cloudKeyInput = document.getElementById('cloud-key-input');
-  const btnClearCloud = document.getElementById('btn-clear-cloud');
+  // Cloud Database Seeder
   const btnSeedSupabase = document.getElementById('btn-seed-supabase');
 
   /* =========================================================================
@@ -340,9 +336,6 @@ document.addEventListener('DOMContentLoaded', async () => {
      ========================================================================= */
 
   function loadCloudSettings() {
-    if (!cloudUrlInput || !cloudKeyInput) return;
-    cloudUrlInput.value = localStorage.getItem('bling_supabase_url') || (window.BLING_SUPABASE_CONFIG?.url || '');
-    cloudKeyInput.value = localStorage.getItem('bling_supabase_anon_key') || (window.BLING_SUPABASE_CONFIG?.anonKey || '');
     updateCloudBadge();
     updateAdminUserDisplay();
   }
@@ -355,37 +348,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       cloudBadge.textContent = '🟢 Supabase Cloud Live';
     } else {
       cloudBadge.className = 'cloud-status-indicator cloud-local';
-      cloudBadge.textContent = '⚡ Local Fallback Mode';
+      cloudBadge.textContent = '⚡ Offline / Fallback Mode';
     }
-  }
-
-  if (cloudForm) {
-    cloudForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const url = cloudUrlInput.value.trim();
-      const key = cloudKeyInput.value.trim();
-
-      if (window.BlingSupabase) {
-        window.BlingSupabase.saveCredentials(url, key);
-        if (window.BlingStorage) {
-          await window.BlingStorage.init();
-        }
-        updateCloudBadge();
-        showToast('Supabase Cloud connection updated!');
-      }
-    });
-  }
-
-  if (btnClearCloud) {
-    btnClearCloud.addEventListener('click', () => {
-      if (confirm('Clear saved Supabase credentials and return to Local Fallback Mode?')) {
-        if (window.BlingSupabase) window.BlingSupabase.clearCredentials();
-        if (cloudUrlInput) cloudUrlInput.value = '';
-        if (cloudKeyInput) cloudKeyInput.value = '';
-        updateCloudBadge();
-        showToast('Reverted to Local Fallback Mode.');
-      }
-    });
   }
 
   if (btnSeedSupabase) {
@@ -459,14 +423,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // Client-side HTML5 Canvas Image Compression (~80KB optimized for cloud sync & mobile speed)
+  function compressImageFile(file, maxWidth = 1000, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth || height > maxWidth) {
+            if (width > height) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxWidth) / height);
+              height = maxWidth;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   // Open Add Modal
   if (btnOpenAdd) {
     btnOpenAdd.addEventListener('click', () => {
       form.reset();
       fId.value = '';
-      currentImageData = 'SampleImages/WhatsApp Image 2026-09-08 at 11.16.39 PM.jpeg';
-      fImageUrl.value = currentImageData;
-      updateImagePreview(currentImageData);
+      currentImageData = '';
+      fImageUrl.value = '';
+      if (fImageFile) fImageFile.value = '';
+      updateImagePreview('');
       modalTitle.textContent = 'Add New Handcrafted Creation';
       modal.classList.add('active');
     });
@@ -490,18 +490,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Handle Image File Upload (Base64 conversion)
+  // Handle Image File Upload (Auto-compressed to ~80KB)
   if (fImageFile) {
-    fImageFile.addEventListener('change', (e) => {
+    fImageFile.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (loadEvt) => {
-          currentImageData = loadEvt.target.result;
-          fImageUrl.value = 'Local Upload (' + file.name + ')';
+        try {
+          currentImageData = await compressImageFile(file);
+          fImageUrl.value = 'Gallery Upload (' + file.name + ')';
           updateImagePreview(currentImageData);
-        };
-        reader.readAsDataURL(file);
+        } catch (err) {
+          const reader = new FileReader();
+          reader.onload = (loadEvt) => {
+            currentImageData = loadEvt.target.result;
+            fImageUrl.value = 'Gallery Upload (' + file.name + ')';
+            updateImagePreview(currentImageData);
+          };
+          reader.readAsDataURL(file);
+        }
       }
     });
   }
@@ -528,7 +534,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       style: fStyle.value,
       occasion: fOccasion.value,
       badge: fBadge.value.trim(),
-      image: currentImageData || 'SampleImages/WhatsApp Image 2026-09-08 at 11.16.39 PM.jpeg',
+      image: currentImageData || (fImageUrl.value && !fImageUrl.value.startsWith('Gallery Upload') ? fImageUrl.value : '') || 'SampleImages/WhatsApp Image 2026-09-08 at 11.16.39 PM.jpeg',
       description: fDescription.value.trim(),
       isBestseller: fIsBestseller.checked,
       availability_status: fAvailability ? fAvailability.value : 'in_stock'

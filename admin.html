@@ -451,39 +451,32 @@
     <section id="view-cloud" class="admin-tab-content no-print" style="display: none;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-lg);">
         
-        <!-- Supabase Credentials Manager -->
+        <!-- Supabase Cloud Database Status & Seeding -->
         <div class="stat-card" style="padding: var(--space-lg);">
-          <h3 style="font-size: 1.25rem; margin-bottom: 6px;">☁️ Supabase Cloud Database Connection</h3>
-          <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 20px;">
-            Connect your free Supabase database. These credentials are saved safely in your browser storage and never published to GitHub.
-          </p>
-
-          <form id="cloud-credentials-form">
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label for="cloud-url-input">Supabase Project URL</label>
-              <input type="url" id="cloud-url-input" class="form-input" placeholder="https://your-project.supabase.co" />
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div>
+              <h3 style="font-size: 1.25rem; margin-bottom: 4px;">☁️ Cloud Database & Live Sync</h3>
+              <p class="text-muted" style="font-size: 0.85rem;">
+                Your online boutique is connected to Supabase Cloud Database as the single source of truth.
+              </p>
             </div>
+          </div>
 
-            <div class="form-group" style="margin-bottom: 20px;">
-              <label for="cloud-key-input">Supabase Anon / Public Key</label>
-              <textarea id="cloud-key-input" class="form-textarea" rows="3" placeholder="eyJhbGciOi..."></textarea>
+          <div style="background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #065F46; font-weight: 700; margin-bottom: 4px;">Connection Status</div>
+            <div style="font-size: 0.95rem; font-weight: 700; color: #047857; display: flex; align-items: center; gap: 8px;">
+              <span class="status-indicator-dot" style="background: #10B981; width: 10px; height: 10px;"></span>
+              Supabase Realtime Cloud Connected
             </div>
-
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <button type="submit" class="btn btn-primary btn-sm">Save & Connect Cloud</button>
-              <button type="button" class="btn btn-secondary btn-sm" id="btn-clear-cloud">Clear Credentials</button>
-            </div>
-          </form>
-
-          <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--color-border);" />
+          </div>
 
           <!-- 1-Click Database Seed -->
-          <div>
-            <h4 style="font-size: 0.95rem; margin-bottom: 4px;">🚀 One-Click Database Seeding</h4>
-            <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 12px;">
-              Upload all 20 handcrafted boutique creations from this catalog into your fresh Supabase database in 1 click:
+          <div style="background: var(--color-bg-subtle); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 18px; margin-bottom: 16px;">
+            <h4 style="font-size: 1rem; margin-bottom: 6px; color: var(--color-text-main);">🚀 Initial Database Seeding</h4>
+            <p class="text-muted" style="font-size: 0.825rem; margin-bottom: 14px; line-height: 1.5;">
+              Upload all 20 curated creations from the factory catalogue into your Supabase database. Click this once to populate your fresh cloud tables:
             </p>
-            <button type="button" class="btn btn-wine btn-sm" id="btn-seed-supabase">
+            <button type="button" class="btn btn-wine" id="btn-seed-supabase" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px;">
               🚀 Seed All 20 Products to Supabase
             </button>
           </div>

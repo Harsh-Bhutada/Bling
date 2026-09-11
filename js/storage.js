@@ -19,7 +19,13 @@ const BlingStorage = {
    * 3. If Supabase is unconfigured/unreachable, gracefully falls back to LocalStorage & catalog.json.
    */
   async init() {
-    // 1. Try Supabase Cloud Sync
+    // Clear legacy localStorage product cache to free browser storage and avoid desync
+    try {
+      localStorage.removeItem(BLING_STORAGE_KEY);
+      localStorage.removeItem('bling_boutique_catalog_v1');
+    } catch (e) {}
+
+    // 1. Primary Single Source of Truth: Supabase Cloud Database
     if (window.BlingSupabase) {
       const client = window.BlingSupabase.getClient();
       if (client && window.BlingSupabase.isConfigured) {
@@ -32,41 +38,25 @@ const BlingStorage = {
           if (!error && Array.isArray(data) && data.length > 0) {
             this._cache = data.map(this._normalizeProductRecord);
             this._isCloudSync = true;
-            this._persist(); // Keep local cache updated as emergency backup
             this._setupRealtimeListener(client);
-            console.log(`💎 Loaded ${this._cache.length} live creations from Supabase Cloud.`);
+            console.log(`💎 Supabase Single Source of Truth: loaded ${this._cache.length} live creations.`);
             return this._cache;
           } else if (error) {
-            console.warn('Supabase fetch failed or table empty, using local fallback:', error.message);
+            console.warn('Supabase fetch failed or table empty:', error.message);
           }
         } catch (cloudErr) {
-          console.warn('Supabase cloud connection error, falling back to local storage:', cloudErr);
+          console.warn('Supabase cloud connection error, falling back to catalog.json:', cloudErr);
         }
       }
     }
 
-    // 2. Zero-Failure Local Fallback
+    // 2. Offline / Initial Seed Fallback: ./data/catalog.json
     this._isCloudSync = false;
-    try {
-      const stored = localStorage.getItem(BLING_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          this._cache = parsed.map(this._normalizeProductRecord);
-          return this._cache;
-        }
-      }
-    } catch (e) {
-      console.warn('LocalStorage read failed, trying default catalog.json', e);
-    }
-
-    // 3. Fall back to ./data/catalog.json
     try {
       const res = await fetch('./data/catalog.json');
       if (res.ok) {
         const data = await res.json();
         this._cache = data.map(this._normalizeProductRecord);
-        this._persist();
         return this._cache;
       }
     } catch (err) {
@@ -75,7 +65,6 @@ const BlingStorage = {
 
     if (!this._cache || !this._cache.length) {
       this._cache = this._getFallbackSeed().map(this._normalizeProductRecord);
-      this._persist();
     }
     return this._cache;
   },
@@ -98,9 +87,19 @@ const BlingStorage = {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
           console.log('⚡ Realtime event received from Supabase:', payload.eventType);
           if (payload.eventType === 'UPDATE') {
-            const updated = this._normalizeProductRecord(payload.new);
-            const idx = this._cache.findIndex(p => p.id === updated.id || p.sku === updated.sku);
+            const idx = this._cache.findIndex(p => p.id === payload.new.id || p.sku === payload.new.sku);
             if (idx !== -1) {
+              const existing = this._cache[idx];
+              // Merge updates into existing record, preserving custom image if payload.new.image is omitted/null
+              const merged = {
+                ...existing,
+                ...payload.new,
+                image: (payload.new.image && typeof payload.new.image === 'string' && payload.new.image.trim())
+                  ? payload.new.image
+                  : existing.image,
+                availability_status: payload.new.availability_status || existing.availability_status
+              };
+              const updated = this._normalizeProductRecord(merged);
               this._cache[idx] = updated;
               this._persist();
               this._notify('update', updated);
@@ -250,11 +249,11 @@ const BlingStorage = {
     this._notify('add', newProduct);
 
     // Cloud insert
-    if (this._isCloudSync && window.BlingSupabase) {
+    if (window.BlingSupabase && window.BlingSupabase.isConfigured) {
       const client = window.BlingSupabase.getClient();
       if (client) {
         try {
-          await client.from('products').insert([{
+          const { error } = await client.from('products').insert([{
             id: newProduct.id,
             sku: newProduct.sku,
             title: newProduct.title,
@@ -271,8 +270,13 @@ const BlingStorage = {
             is_new: newProduct.isNew,
             availability_status: newProduct.availability_status
           }]);
+          if (error) {
+            console.warn('Cloud insert failed:', error.message);
+          } else {
+            this._isCloudSync = true;
+          }
         } catch (e) {
-          console.warn('Cloud insert failed:', e);
+          console.warn('Cloud insert exception:', e);
         }
       }
     }
@@ -366,8 +370,18 @@ const BlingStorage = {
     const client = window.BlingSupabase.getClient();
     if (!client) throw new Error('Please configure Supabase URL and Anon Key first.');
 
-    const catalog = this.getCatalog();
-    const rows = catalog.map(p => ({
+    // Fetch master catalog from catalog.json if cache is empty or incomplete
+    let sourceCatalog = this.getCatalog();
+    if (!sourceCatalog || sourceCatalog.length < 20) {
+      try {
+        const res = await fetch('./data/catalog.json');
+        if (res.ok) {
+          sourceCatalog = await res.json();
+        }
+      } catch (e) {}
+    }
+
+    const rows = sourceCatalog.map(p => ({
       id: p.id,
       sku: p.sku,
       title: p.title,
@@ -391,6 +405,9 @@ const BlingStorage = {
     if (error) throw error;
 
     this._isCloudSync = true;
+    // Re-fetch clean state from Supabase
+    await this.init();
+    this._notify('reset', this._cache);
     return rows.length;
   },
 
@@ -403,14 +420,15 @@ const BlingStorage = {
       if (res.ok) {
         const data = await res.json();
         this._cache = data.map(this._normalizeProductRecord);
-        this._persist();
+        if (window.BlingSupabase && window.BlingSupabase.isConfigured) {
+          await this.seedSupabaseFromLocal();
+        }
         this._notify('reset', this._cache);
         return this._cache;
       }
     } catch (e) {}
 
     this._cache = this._getFallbackSeed().map(this._normalizeProductRecord);
-    this._persist();
     this._notify('reset', this._cache);
     return this._cache;
   },
@@ -476,11 +494,8 @@ const BlingStorage = {
 
   /* --- Internal Helper Utilities --- */
   _persist() {
-    try {
-      localStorage.setItem(BLING_STORAGE_KEY, JSON.stringify(this._cache));
-    } catch (e) {
-      console.warn('Failed to save to localStorage', e);
-    }
+    // Intentionally a no-op: Supabase is the single source of truth for catalogue products.
+    // Products are never written to localStorage to avoid 5MB quota exhaustion and device desynchronization.
   },
 
   _notify(action, payload) {
